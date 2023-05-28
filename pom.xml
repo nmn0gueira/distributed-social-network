@@ -7,7 +7,7 @@
 	<version>1.0</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<authors>xxxxx-yyyyy</authors>
+		<authors>59815-60599</authors>
 	</properties>
 
 	<build>
@@ -48,7 +48,7 @@
 				<configuration>
 					<images>
 						<image>
-							<name>sd2223-trab1-${authors}</name>
+							<name>sd2223-trab2-${authors}</name>
 							<build>
 								<dockerFile>${project.basedir}/Dockerfile</dockerFile>
 							</build>
