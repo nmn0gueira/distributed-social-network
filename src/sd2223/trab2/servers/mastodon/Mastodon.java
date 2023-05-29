@@ -73,7 +73,6 @@ public class Mastodon implements FeedsPush {
 	
 	@Override
 	public Result<Long> postMessage(String user, String pwd, Message msg) {
-		System.out.println("Mastodon.postMessage: " + msg.getText());
 		try {
 			final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(STATUSES_PATH));
 

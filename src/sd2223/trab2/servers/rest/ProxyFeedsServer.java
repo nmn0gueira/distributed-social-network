@@ -19,8 +19,7 @@ public class ProxyFeedsServer extends AbstractRestServer{
 
     @Override
     void registerResources(ResourceConfig config) {
-        config.register(RestFeedsPushResource.class);
-        config.register(new CustomLoggingFilter());
+        config.register(ProxyFeedsResource.class);
     }
 
     public static void main(String[] args) throws Exception {
