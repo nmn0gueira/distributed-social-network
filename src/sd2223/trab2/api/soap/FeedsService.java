@@ -10,8 +10,8 @@ import sd2223.trab2.api.Message;
 public interface FeedsService {
 
 	static final String NAME = "feeds";
-	static final String NAMESPACE = "https://sd2223";
-	static final String INTERFACE = "sd2223.trab1.api.soap.FeedsService";
+	static final String NAMESPACE = "http://sd2223";
+	static final String INTERFACE = "sd2223.trab2.api.soap.FeedsService";
 	
 	/**
 	 * Posts a new message in the feed, associating it to the feed of the specific user.

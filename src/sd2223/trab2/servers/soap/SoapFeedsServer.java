@@ -10,7 +10,7 @@ import utils.Args;
 public class SoapFeedsServer extends AbstractSoapServer<SoapFeedsWebService<?>> {
 
 	public static final int PORT = 14567;
-	private static Logger Log = Logger.getLogger(SoapFeedsServer.class.getName());
+	private static final Logger Log = Logger.getLogger(SoapFeedsServer.class.getName());
 
 	protected SoapFeedsServer() {
 		super(false, Log, Feeds.SERVICENAME, PORT,  Args.valueOf("-push", true) ? new SoapFeedsPushWebService() : new SoapFeedsPullWebService() );
@@ -18,7 +18,7 @@ public class SoapFeedsServer extends AbstractSoapServer<SoapFeedsWebService<?>> 
 
 	public static void main(String[] args) throws Exception {
 		Args.use(args);		
-		Domain.set( args[0], 0);
+		Domain.set( args[0], (long) (Math.random()*1000));
 		new SoapFeedsServer().start();
 	}
 }
