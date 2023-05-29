@@ -32,9 +32,9 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	
 	static String MASTODON_SERVER_URI = MASTODON_NOVA_SERVER_URI;
 	
-	private static final String clientKey = "FiSHMiWPM7qhvUWqzxF3SupvgE7k1x1no754sqk-gX8";
-	private static final String clientSecret = "cVP7lbzZ_KyqeRhs9j9qY7VH-HLXtCinL2cbM5F4ZB4";
-	private static final String accessTokenStr = "2fIM6Ewwcnzu_W7SEq-G096BXnEk_eBfhnqwseFeqT0";
+	private static final String clientKey = "F-xU2CFsGlZaBQoVjM8NRfL3Xj0ku812I1NoBFN_y4E";
+	private static final String clientSecret = "cMpykugPT9ntPO3f9myAe0NiAwqPTjViSMnU7zqBuqs";
+	private static final String accessTokenStr = "G50hfo4Awfi3KqvFhIFc0IaKkTMJzxUp1iyP5G3l3us";
 
 	static final String STATUSES_PATH= "/api/v1/statuses";
 	static final String TIMELINES_PATH = "/api/v1/timelines/home";
