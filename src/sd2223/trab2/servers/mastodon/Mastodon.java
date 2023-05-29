@@ -9,7 +9,9 @@ import java.util.List;
 import com.google.gson.reflect.TypeToken;
 
 import sd2223.trab2.api.Message;
-import sd2223.trab2.api.java.Feeds;
+import sd2223.trab2.api.PushMessage;
+import sd2223.trab2.api.java.FeedsPull;
+import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusArgs;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusResult;
@@ -23,7 +25,7 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 
 import utils.JSON;
 
-public class Mastodon implements Feeds {
+public class Mastodon implements FeedsPush, FeedsPull {
 	
 	static String MASTODON_NOVA_SERVER_URI = "http://10.170.138.52:3000";
 	static String MASTODON_SOCIAL_SERVER_URI = "https://mastodon.social";
@@ -92,6 +94,7 @@ public class Mastodon implements Feeds {
 		return error(INTERNAL_ERROR);
 	}
 
+	//TODO: MUDAR RETORNO PARA APENAS MENSAGENS MAIS RECENTES QUE TIME
 	@Override
 	public Result<List<Message>> getMessages(String user, long time) {
 		try {
@@ -117,7 +120,8 @@ public class Mastodon implements Feeds {
 	@Override
 	public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
 		try {
-			final OAuthRequest request = new OAuthRequest(Verb.DELETE, getEndpoint(STATUSES_PATH));
+			var endpoint_url = getEndpoint(STATUSES_PATH) + "/" + mid;
+			final OAuthRequest request = new OAuthRequest(Verb.DELETE, endpoint_url);
 
 			service.signRequest(accessToken, request);
 
@@ -126,7 +130,7 @@ public class Mastodon implements Feeds {
 			if (response.getCode() == HTTP_OK) {
 				return ok();
 			}
-			System.out.println(response.getCode());
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -136,7 +140,22 @@ public class Mastodon implements Feeds {
 
 	@Override
 	public Result<Message> getMessage(String user, long mid) {
-		return error(NOT_IMPLEMENTED);
+		try {
+			var endpoint_url = getEndpoint(STATUSES_PATH) + "/" + mid;
+			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_OK) {
+				var res = JSON.decode(response.getBody(), PostStatusResult.class);
+				return ok(res.toMessage());
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
 	}
 
 	@Override
@@ -159,4 +178,18 @@ public class Mastodon implements Feeds {
 		return null;
 	}
 
+	@Override
+	public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
+		return null;
+	}
+
+	@Override
+	public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
+		return null;
+	}
+
+	@Override
+	public Result<Void> push_PushMessage(PushMessage msg) {
+		return null;
+	}
 }
