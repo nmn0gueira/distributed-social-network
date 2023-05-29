@@ -18,7 +18,7 @@ public class SoapFeedsServer extends AbstractSoapServer<SoapFeedsWebService<?>> 
 
 	public static void main(String[] args) throws Exception {
 		Args.use(args);		
-		Domain.set( args[0], (long) (Math.random()*1000));
+		Domain.set( args[0], Long.valueOf(args[1]));
 		new SoapFeedsServer().start();
 	}
 }
