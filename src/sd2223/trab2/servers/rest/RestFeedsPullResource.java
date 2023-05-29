@@ -7,12 +7,13 @@ import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.FeedsPull;
 import sd2223.trab2.api.rest.FeedsServicePull;
 import sd2223.trab2.servers.java.JavaFeedsPull;
+import sd2223.trab2.servers.mastodon.Mastodon;
 
 @Singleton
 public class RestFeedsPullResource extends RestFeedsResource<FeedsPull> implements FeedsServicePull {
 
-	public RestFeedsPullResource() {
-		super(new JavaFeedsPull());
+	public RestFeedsPullResource(boolean proxy) {
+		super(proxy ? Mastodon.getInstance() : new JavaFeedsPull());
 	}
 
 	@Override

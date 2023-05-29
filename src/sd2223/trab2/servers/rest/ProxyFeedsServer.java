@@ -11,7 +11,7 @@ public class ProxyFeedsServer extends AbstractRestServer{
 
     public static final int PORT = 5678;
 
-    private static Logger Log = Logger.getLogger(ProxyFeedsServer.class.getName());
+    private static final Logger Log = Logger.getLogger(ProxyFeedsServer.class.getName());
 
     protected ProxyFeedsServer() {
         super( Log, Feeds.SERVICENAME, PORT);
@@ -19,7 +19,7 @@ public class ProxyFeedsServer extends AbstractRestServer{
 
     @Override
     void registerResources(ResourceConfig config) {
-        config.register(ProxyFeedsResource.class);
+        config.register(new RestFeedsPushResource(true));
     }
 
     public static void main(String[] args) throws Exception {
