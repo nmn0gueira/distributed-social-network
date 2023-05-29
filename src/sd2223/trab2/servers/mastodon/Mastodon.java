@@ -9,9 +9,7 @@ import java.util.List;
 import com.google.gson.reflect.TypeToken;
 
 import sd2223.trab2.api.Message;
-import sd2223.trab2.api.PushMessage;
-import sd2223.trab2.api.java.FeedsPull;
-import sd2223.trab2.api.java.FeedsPush;
+import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusArgs;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusResult;
@@ -25,7 +23,7 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 
 import utils.JSON;
 
-public class Mastodon implements FeedsPush, FeedsPull {
+public class Mastodon implements Feeds {
 	
 	static String MASTODON_NOVA_SERVER_URI = "http://10.170.138.52:3000";
 	static String MASTODON_SOCIAL_SERVER_URI = "https://mastodon.social";
@@ -161,18 +159,4 @@ public class Mastodon implements FeedsPush, FeedsPull {
 		return null;
 	}
 
-	@Override
-	public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
-		return null;
-	}
-
-	@Override
-	public Result<Void> push_PushMessage(PushMessage msg) {
-		return null;
-	}
-
-	@Override
-	public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
-		return null;
-	}
 }
