@@ -1,6 +1,8 @@
 package sd2223.trab2.servers.mastodon.msgs;
 
 import sd2223.trab2.api.Message;
+import sd2223.trab2.servers.Domain;
+
 import java.time.Instant;
 
 public record PostStatusResult(String id, String content, String created_at, MastodonAccount account) {
@@ -18,7 +20,7 @@ public record PostStatusResult(String id, String content, String created_at, Mas
 	}
 	
 	public Message toMessage() {
-		var m = new Message( getId(), account.username(), "todo", getText());
+		var m = new Message(getId(), account.username(), Domain.get(), getText());
 		m.setCreationTime( getCreationTime() );
 		return m;
 	}
