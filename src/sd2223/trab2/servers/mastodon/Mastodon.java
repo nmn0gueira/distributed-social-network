@@ -46,6 +46,8 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	
 	private static final int HTTP_OK = 200;
 
+	private static final int HTTP_NO_CONTENT = 204;
+
 	protected OAuth20Service service;
 	protected OAuth2AccessToken accessToken;
 
@@ -94,7 +96,7 @@ public class Mastodon implements FeedsPush, FeedsPull {
 		return error(INTERNAL_ERROR);
 	}
 
-	//TODO: MUDAR RETORNO PARA APENAS MENSAGENS MAIS RECENTES QUE TIME
+
 	@Override
 	public Result<List<Message>> getMessages(String user, long time) {
 		try {
@@ -107,7 +109,7 @@ public class Mastodon implements FeedsPush, FeedsPull {
 			if (response.getCode() == HTTP_OK) {
 				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
 				});
-
+				//TODO: MUDAR RETORNO PARA APENAS MENSAGENS MAIS RECENTES QUE TIME
 				return ok(res.stream().map(PostStatusResult::toMessage).toList());
 			}
 		} catch (Exception x) {
@@ -127,7 +129,7 @@ public class Mastodon implements FeedsPush, FeedsPull {
 
 			Response response = service.execute(request);
 
-			if (response.getCode() == HTTP_OK) {
+			if (response.getCode() == HTTP_NO_CONTENT) {
 				return ok();
 			}
 
@@ -160,36 +162,82 @@ public class Mastodon implements FeedsPush, FeedsPull {
 
 	@Override
 	public Result<Void> subUser(String user, String userSub, String pwd) {
-		return error(NOT_IMPLEMENTED);
+		try {
+			var endpoint_url = getEndpoint(ACCOUNT_FOLLOW_PATH, userSub);
+			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_NO_CONTENT) {
+				return ok();
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
 	}
 
 	@Override
 	public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
-		return error(NOT_IMPLEMENTED);
+		try {
+			var endpoint_url = getEndpoint(ACCOUNT_UNFOLLOW_PATH, userSub);
+			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_NO_CONTENT) {
+				return ok();
+			}
+
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
 	}
 
 	@Override
 	public Result<List<String>> listSubs(String user) {
-		return error(NOT_IMPLEMENTED);
+		try {
+			var endpoint_url = getEndpoint(ACCOUNT_FOLLOWING_PATH, user);
+			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_OK) {
+				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
+				});
+
+				return ok(res.stream().map(PostStatusResult::getText).toList());
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
 	}
 
 	@Override
 	public Result<Void> deleteUserFeed(String user) {
-		return null;
+		return error(NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
-		return null;
+		return error(NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
-		return null;
+		return error(NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public Result<Void> push_PushMessage(PushMessage msg) {
-		return null;
+		return error(NOT_IMPLEMENTED);
 	}
 }
