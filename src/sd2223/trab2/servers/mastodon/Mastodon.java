@@ -109,8 +109,11 @@ public class Mastodon implements FeedsPush, FeedsPull {
 			if (response.getCode() == HTTP_OK) {
 				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
 				});
-				//TODO: MUDAR RETORNO PARA APENAS MENSAGENS MAIS RECENTES QUE TIME
-				return ok(res.stream().map(PostStatusResult::toMessage).toList());
+
+				return ok(res.stream()
+						.filter(result -> result.getCreationTime() > time)
+						.map(PostStatusResult::toMessage)
+						.toList());
 			}
 		} catch (Exception x) {
 			x.printStackTrace();
@@ -163,7 +166,13 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	@Override
 	public Result<Void> subUser(String user, String userSub, String pwd) {
 		try {
-			var endpoint_url = getEndpoint(ACCOUNT_FOLLOW_PATH, userSub);
+			var res = getUserId(userSub);
+
+			if (!res.isOK()) {
+				return error(res.error());
+			}
+
+			var endpoint_url = getEndpoint(ACCOUNT_FOLLOW_PATH, res.value());
 			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
 
 			service.signRequest(accessToken, request);
@@ -182,7 +191,13 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	@Override
 	public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
 		try {
-			var endpoint_url = getEndpoint(ACCOUNT_UNFOLLOW_PATH, userSub);
+			var res = getUserId(userSub);
+
+			if (!res.isOK()) {
+				return error(res.error());
+			}
+
+			var endpoint_url = getEndpoint(ACCOUNT_UNFOLLOW_PATH, res.value());
 			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
 
 			service.signRequest(accessToken, request);
@@ -214,6 +229,30 @@ public class Mastodon implements FeedsPush, FeedsPull {
 				});
 
 				return ok(res.stream().map(PostStatusResult::getText).toList());
+			}
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
+	}
+
+	private Result<Long> getUserId(String userName) {
+		try {
+			var endpoint_url = getEndpoint(SEARCH_ACCOUNTS_PATH);
+			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
+
+			request.addQuerystringParameter("q", userName);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_OK) {
+				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
+				});
+
+				return ok(res.get(0).getId());
+
 			}
 		} catch (Exception x) {
 			x.printStackTrace();

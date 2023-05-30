@@ -11,7 +11,7 @@ public record PostStatusResult(String id, String content, String created_at, Mas
 		return Long.parseLong(id);
 	}
 	
-	long getCreationTime() {
+	public long getCreationTime() {
 		return Instant.parse(created_at).toEpochMilli();
 	}
 	
