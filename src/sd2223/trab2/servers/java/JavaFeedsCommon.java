@@ -46,7 +46,7 @@ public abstract class JavaFeedsCommon<T extends Feeds>  implements Feeds {
 					
 		Long mid = serial.incrementAndGet();
 		msg.setId(mid);
-		msg.setCreationTime(System.currentTimeMillis());
+		// msg.setCreationTime(System.currentTimeMillis());
 
 		FeedInfo ufi = feeds.computeIfAbsent(user, FeedInfo::new );
 		synchronized (ufi.user()) {
