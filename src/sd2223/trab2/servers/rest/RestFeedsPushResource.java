@@ -5,13 +5,14 @@ import sd2223.trab2.api.PushMessage;
 import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.rest.FeedsServicePush;
 import sd2223.trab2.servers.java.JavaFeedsPush;
-import sd2223.trab2.servers.mastodon.Mastodon;
+import sd2223.trab2.servers.mastodon.MastodonFeeds;
+import utils.Args;
 
 @Singleton
 public class RestFeedsPushResource extends RestFeedsResource<FeedsPush> implements FeedsServicePush {
 
-	public RestFeedsPushResource(boolean proxy) {
-		super(proxy ? Mastodon.getInstance() : new JavaFeedsPush());
+	public RestFeedsPushResource() {
+		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : Args.contains("rep") ? null : new JavaFeedsPush());
 	}
 
 	@Override

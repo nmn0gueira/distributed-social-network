@@ -25,7 +25,7 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 
 import utils.JSON;
 
-public class Mastodon implements FeedsPush, FeedsPull {
+public class MastodonFeeds implements FeedsPush, FeedsPull {
 	
 	static String MASTODON_NOVA_SERVER_URI = "http://10.170.138.52:3000";
 	static String MASTODON_SOCIAL_SERVER_URI = "https://mastodon.social";
@@ -51,9 +51,9 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	protected OAuth20Service service;
 	protected OAuth2AccessToken accessToken;
 
-	private static Mastodon impl;
+	private static MastodonFeeds impl;
 	
-	protected Mastodon() {
+	protected MastodonFeeds() {
 		try {
 			service = new ServiceBuilder(clientKey).apiSecret(clientSecret).build(MastodonApi.instance());
 			accessToken = new OAuth2AccessToken(accessTokenStr);
@@ -63,9 +63,9 @@ public class Mastodon implements FeedsPush, FeedsPull {
 		}
 	}
 
-	synchronized public static Mastodon getInstance() {
+	synchronized public static MastodonFeeds getInstance() {
 		if (impl == null)
-			impl = new Mastodon();
+			impl = new MastodonFeeds();
 		return impl;
 	}
 

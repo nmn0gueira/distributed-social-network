@@ -1,19 +1,20 @@
 package sd2223.trab2.servers.rest;
 
+import java.util.logging.Logger;
+
 import org.glassfish.jersey.server.ResourceConfig;
+
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.servers.Domain;
 import utils.Args;
 
-import java.util.logging.Logger;
 
-public class ProxyFeedsServer extends AbstractRestServer{
+public class RepFeedsServer extends AbstractRestServer {
+    public static final int PORT = 4567;
 
-    public static final int PORT = 5678;
+    private static final Logger Log = Logger.getLogger(RepFeedsServer.class.getName());
 
-    private static final Logger Log = Logger.getLogger(ProxyFeedsServer.class.getName());
-
-    protected ProxyFeedsServer() {
+    RepFeedsServer() {
         super( Log, Feeds.SERVICENAME, PORT);
     }
 
@@ -23,8 +24,8 @@ public class ProxyFeedsServer extends AbstractRestServer{
     }
 
     public static void main(String[] args) throws Exception {
-        Args.use( args);
+        Args.use( args );
         Domain.set( args[0], Long.valueOf(args[1]));
-        new ProxyFeedsServer().start();
+        new RepFeedsServer().start();
     }
 }
