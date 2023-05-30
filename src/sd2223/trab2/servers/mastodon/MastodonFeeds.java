@@ -90,6 +90,7 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 				var res = JSON.decode(response.getBody(), PostStatusResult.class);
 				return ok(res.getId());
 			}
+			System.out.println(response.getCode());
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -132,9 +133,11 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 
 			Response response = service.execute(request);
 
-			if (response.getCode() == HTTP_NO_CONTENT) {
+			if (response.getCode() == HTTP_OK) {
 				return ok();
 			}
+
+			return error(Result.ErrorCode.NOT_FOUND);
 
 		} catch (Exception x) {
 			x.printStackTrace();
@@ -179,7 +182,7 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 
 			Response response = service.execute(request);
 
-			if (response.getCode() == HTTP_NO_CONTENT) {
+			if (response.getCode() == HTTP_OK) {
 				return ok();
 			}
 		} catch (Exception x) {
@@ -206,7 +209,7 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 
 			Response response = service.execute(request);
 
-			if (response.getCode() == HTTP_NO_CONTENT) {
+			if (response.getCode() == HTTP_OK) {
 				return ok();
 			}
 
