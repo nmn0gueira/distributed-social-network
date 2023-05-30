@@ -5,6 +5,7 @@ import sd2223.trab2.api.PushMessage;
 import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.rest.FeedsServicePush;
 import sd2223.trab2.servers.java.JavaFeedsPush;
+import sd2223.trab2.servers.java.JavaFeedsRepPush;
 import sd2223.trab2.servers.mastodon.MastodonFeeds;
 import utils.Args;
 
@@ -12,7 +13,7 @@ import utils.Args;
 public class RestFeedsPushResource extends RestFeedsResource<FeedsPush> implements FeedsServicePush {
 
 	public RestFeedsPushResource() {
-		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : Args.contains("rep") ? null : new JavaFeedsPush());
+		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : Args.contains("rep") ? new JavaFeedsRepPush() : new JavaFeedsPush());
 	}
 
 	@Override
