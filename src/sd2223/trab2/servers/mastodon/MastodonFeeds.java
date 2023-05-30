@@ -46,7 +46,10 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 	
 	private static final int HTTP_OK = 200;
 
-	private static final int HTTP_NO_CONTENT = 204;
+	private static final int HTTP_BAD_REQUEST = 400;
+
+	private static final int HTTP_FORBIDDEN = 403;
+	private static final int HTTP_NOT_FOUND = 404;
 
 	protected OAuth20Service service;
 	protected OAuth2AccessToken accessToken;
@@ -90,7 +93,9 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 				var res = JSON.decode(response.getBody(), PostStatusResult.class);
 				return ok(res.getId());
 			}
-			System.out.println(response.getCode());
+
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -116,6 +121,9 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 						.map(PostStatusResult::toMessage)
 						.toList());
 			}
+
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -137,7 +145,7 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 				return ok();
 			}
 
-			return error(Result.ErrorCode.NOT_FOUND);
+			return error(getErrorCode(response.getCode()));
 
 		} catch (Exception x) {
 			x.printStackTrace();
@@ -160,6 +168,9 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 				var res = JSON.decode(response.getBody(), PostStatusResult.class);
 				return ok(res.toMessage());
 			}
+
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -185,6 +196,9 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 			if (response.getCode() == HTTP_OK) {
 				return ok();
 			}
+
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -213,6 +227,8 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 				return ok();
 			}
 
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -240,6 +256,9 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 
 				return ok(res2.stream().map(PostStatusResult::getText).toList());
 			}
+
+			return error(getErrorCode(response.getCode()));
+
 		} catch (Exception x) {
 			x.printStackTrace();
 		}
@@ -288,5 +307,14 @@ public class MastodonFeeds implements FeedsPush, FeedsPull {
 	@Override
 	public Result<Void> push_PushMessage(PushMessage msg) {
 		return error(NOT_IMPLEMENTED);
+	}
+
+	private Result.ErrorCode getErrorCode(int code) {
+		return switch (code) {
+			case HTTP_BAD_REQUEST -> BAD_REQUEST;
+			case HTTP_FORBIDDEN -> FORBIDDEN;
+			case HTTP_NOT_FOUND -> NOT_FOUND;
+			default -> Result.ErrorCode.INTERNAL_ERROR;
+		};
 	}
 }
