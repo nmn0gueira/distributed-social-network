@@ -17,7 +17,7 @@ import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.servers.Domain;
 
-public abstract class JavaFeedsCommon<T extends Feeds>  implements Feeds {
+public abstract class JavaFeedsCommon<T extends Feeds> implements Feeds {
 	private static final long FEEDS_MID_PREFIX= 1_000_000_000;
 
 	protected AtomicLong serial = new AtomicLong(Domain.uuid() * FEEDS_MID_PREFIX);

@@ -15,7 +15,7 @@ import utils.Args;
 public class RestFeedsPullResource extends RestFeedsResource<FeedsPull> implements FeedsServicePull {
 
 	public RestFeedsPullResource() {
-		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : Args.contains("rep") ? null : new JavaFeedsPull());
+		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : new JavaFeedsPull());
 	}
 
 	@Override
