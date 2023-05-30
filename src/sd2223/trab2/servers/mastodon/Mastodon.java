@@ -197,6 +197,8 @@ public class Mastodon implements FeedsPush, FeedsPull {
 				return error(res.error());
 			}
 
+			System.out.println("ID USER: " +res);
+
 			var endpoint_url = getEndpoint(ACCOUNT_UNFOLLOW_PATH, res.value());
 			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
 
@@ -217,7 +219,12 @@ public class Mastodon implements FeedsPush, FeedsPull {
 	@Override
 	public Result<List<String>> listSubs(String user) {
 		try {
-			var endpoint_url = getEndpoint(ACCOUNT_FOLLOWING_PATH, user);
+			var res1 = getUserId(user);
+			if (!res1.isOK()) {
+				return error(res1.error());
+			}
+
+			var endpoint_url = getEndpoint(ACCOUNT_FOLLOWING_PATH, res1.value());
 			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
 
 			service.signRequest(accessToken, request);
@@ -225,10 +232,10 @@ public class Mastodon implements FeedsPush, FeedsPull {
 			Response response = service.execute(request);
 
 			if (response.getCode() == HTTP_OK) {
-				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
+				List<PostStatusResult> res2 = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
 				});
 
-				return ok(res.stream().map(PostStatusResult::getText).toList());
+				return ok(res2.stream().map(PostStatusResult::getText).toList());
 			}
 		} catch (Exception x) {
 			x.printStackTrace();
