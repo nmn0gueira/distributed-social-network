@@ -23,6 +23,17 @@ public class JavaRepFeeds extends JavaFeedsPush implements Feeds {
 
     private static final String TOPIC = Domain.get();
 
+    // Operation constants used in Kafka messages
+    private static final String POST_MESSAGE = "postMessage";
+    private static final String REMOVE_FROM_PERSONAL_FEED = "removeFromPersonalFeed";
+    private static final String DELETE_FROM_USER_FEED = "deleteFromUserFeed";
+    private static final String GET_MESSAGE = "getMessage";
+    private static final String GET_MESSAGES = "getMessages";
+    private static final String SUB_USER = "subUser";
+    private static final String UNSUBSCRIBE_USER = "unsubscribeUser";
+    private static final String LIST_SUBS = "listSubs";
+    private static final String DELETE_USER_FEED = "deleteUserFeed";
+
     private KafkaPublisher publisher;
 
     private KafkaSubscriber subscriber;
@@ -37,50 +48,50 @@ public class JavaRepFeeds extends JavaFeedsPush implements Feeds {
             var message = JSON.decode(r.value(), KafkaMessage.class);
             List args = message.getArguments();
             switch (message.getOp()) {
-                case "postMessage":
+                case POST_MESSAGE:
                     String user = (String) args.get(0);
                     String pwd = (String) args.get(1);
                     Message msg = (Message) args.get(2);
                     super.postMessage(user, pwd, msg);
                     break;
-                case "removeFromPersonalFeed":
+                case REMOVE_FROM_PERSONAL_FEED:
                     user = (String) args.get(0);
                     long mid = (long) args.get(1);
                     pwd = (String) args.get(2);
                     super.removeFromPersonalFeed(user, mid, pwd);
                     break;
-                case "deleteFromUserFeed":
+                case DELETE_FROM_USER_FEED:
                     user = (String) args.get(0);
                     Set<Long> mids = (Set<Long>) args.get(1);
                     super.deleteFromUserFeed(user, mids);
                     break;
-                case "getMessage":
+                case GET_MESSAGE:
                     user = (String) args.get(0);
                     mid = (Long) args.get(1);
                     super.getMessage(user, mid);
                     break;
-                case "getMessages":
+                case GET_MESSAGES:
                     user = (String) args.get(0);
                     long time = (long) args.get(1);
                     super.getMessages(user, time);
                     break;
-                case "subUser":
+                case SUB_USER:
                     user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     pwd = (String) args.get(2);
                     super.subUser(user, userSub, pwd);
                     break;
-                case "unsubscribeUser":
+                case UNSUBSCRIBE_USER:
                     user = (String) args.get(0);
                     userSub = (String) args.get(1);
                     pwd = (String) args.get(2);
                     super.unsubscribeUser(user, userSub, pwd);
                     break;
-                case "listSubs":
+                case LIST_SUBS:
                     user = (String) args.get(0);
                     super.listSubs(user);
                     break;
-                case "deleteUserFeed":
+                case DELETE_USER_FEED:
                     user = (String) args.get(0);
                     super.deleteUserFeed(user);
                     break;
@@ -92,7 +103,7 @@ public class JavaRepFeeds extends JavaFeedsPush implements Feeds {
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         var res = super.preconditions.postMessage(user, pwd, msg);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage("postMessage", user, pwd, msg);
+            KafkaMessage message = new KafkaMessage(POST_MESSAGE, user, pwd, msg);
             publisher.publish(TOPIC, JSON.encode(message));
         }
         return res;
@@ -100,41 +111,77 @@ public class JavaRepFeeds extends JavaFeedsPush implements Feeds {
 
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
-        return null;
+        var res = super.preconditions.removeFromPersonalFeed(user, mid, pwd);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(REMOVE_FROM_PERSONAL_FEED, user, mid, pwd);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
-    protected void deleteFromUserFeed(String user, Set<Long> mids) {
-
+    protected void deleteFromUserFeed(String user, Set<Long> mids) { // Não há precondições aqui?
+            KafkaMessage message = new KafkaMessage(DELETE_FROM_USER_FEED, user, mids);
+            publisher.publish(TOPIC, JSON.encode(message));
     }
 
     @Override
     public Result<Message> getMessage(String user, long mid) {
-        return null;
+        var res = super.preconditions.getMessage(user, mid);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(GET_MESSAGE, user, mid);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
     public Result<List<Message>> getMessages(String user, long time) {
-        return null;
+        var res = super.preconditions.getMessages(user, time);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(GET_MESSAGES, user, time);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
     public Result<Void> subUser(String user, String userSub, String pwd) {
-        return null;
+        var res = super.preconditions.subUser(user, userSub, pwd);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(SUB_USER, user, userSub, pwd);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
-        return null;
+        var res = super.preconditions.unsubscribeUser(user, userSub, pwd);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(UNSUBSCRIBE_USER, user, userSub, pwd);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
     public Result<List<String>> listSubs(String user) {
-        return null;
+        var res = super.preconditions.listSubs(user);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(LIST_SUBS, user);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 
     @Override
     public Result<Void> deleteUserFeed(String user) {
-        return null;
+        var res = super.preconditions.deleteUserFeed(user);
+        if (res.isOK()) {
+            KafkaMessage message = new KafkaMessage(DELETE_USER_FEED, user);
+            publisher.publish(TOPIC, JSON.encode(message));
+        }
+        return res;
     }
 }
