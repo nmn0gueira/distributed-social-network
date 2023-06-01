@@ -5,7 +5,6 @@ import java.util.List;
 import jakarta.inject.Singleton;
 import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.Feeds;
-import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.java.JavaFeedsPull;
 import sd2223.trab2.servers.java.JavaFeedsPush;
