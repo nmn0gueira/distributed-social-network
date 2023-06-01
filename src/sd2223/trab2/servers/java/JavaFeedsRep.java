@@ -35,7 +35,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
 
     public JavaFeedsRep(T impl) {
-        super();
         this.impl = impl;
         publisher = KafkaPublisher.createPublisher(KAFKA_BROKERS);
         KafkaSubscriber subscriber = KafkaSubscriber.createSubscriber(KAFKA_BROKERS, List.of(TOPIC), FROM_BEGINNING);

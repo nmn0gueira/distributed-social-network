@@ -17,10 +17,9 @@ public class RestFeedsRepResource extends RestFeedsResource<Feeds> implements Fe
 
     public RestFeedsRepResource() {
         super(Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull()));
-        this.syncPoint = SyncPoint.getInstance();
     }
 
-    final protected SyncPoint<?> syncPoint;
+    final protected SyncPoint<?> syncPoint = SyncPoint.getInstance();
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {

@@ -1,9 +1,12 @@
 package sd2223.trab2.servers.rest;
 
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.api.java.Result.ErrorCode;
+import sd2223.trab2.api.rest.FeedsServiceRep;
 
 public class RestResource {
 
@@ -13,7 +16,18 @@ public class RestResource {
 	 */
 	protected <T> T fromJavaResult(Result<T> result) {
 		if (result.isOK())
-			return result.value();
+			result.value();
+		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
+			return result.errorValue();
+
+		throw new WebApplicationException(statusCodeFrom(result));
+	}
+
+	protected <T> T fromJavaResult(Result<T> result, long version) {
+		if (result.isOK())
+			throw new WebApplicationException(Response.status(200).
+					header(FeedsServiceRep.HEADER_VERSION, version).
+					encoding(MediaType.APPLICATION_JSON).entity(result.value()).build());
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();
 
