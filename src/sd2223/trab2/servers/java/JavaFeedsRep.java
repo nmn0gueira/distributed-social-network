@@ -45,46 +45,28 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             List<Object> args = message.getArguments();
             switch (message.getOp()) {
                 case POST_MESSAGE:
-                    String user = (String) args.get(0);
-                    String pwd = (String) args.get(1);
-                    Message msg = (Message) args.get(2);
-                    impl.postMessage(user, pwd, msg);
+                    impl.postMessage((String) args.get(0), (String) args.get(1), (Message) args.get(2));
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:
-                    user = (String) args.get(0);
-                    long mid = (long) args.get(1);
-                    pwd = (String) args.get(2);
-                    impl.removeFromPersonalFeed(user, mid, pwd);
+                    impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2));
                     break;
                 case GET_MESSAGE:
-                    user = (String) args.get(0);
-                    mid = (Long) args.get(1);
-                    impl.getMessage(user, mid);
+                    impl.getMessage((String) args.get(0), (long) args.get(1));
                     break;
                 case GET_MESSAGES:
-                    user = (String) args.get(0);
-                    long time = (long) args.get(1);
-                    impl.getMessages(user, time);
+                    impl.getMessages((String) args.get(0), (long) args.get(1));
                     break;
                 case SUB_USER:
-                    user = (String) args.get(0);
-                    String userSub = (String) args.get(1);
-                    pwd = (String) args.get(2);
-                    impl.subUser(user, userSub, pwd);
+                    impl.subUser((String) args.get(0), (String) args.get(1), (String) args.get(2));
                     break;
                 case UNSUBSCRIBE_USER:
-                    user = (String) args.get(0);
-                    userSub = (String) args.get(1);
-                    pwd = (String) args.get(2);
-                    impl.unsubscribeUser(user, userSub, pwd);
+                    impl.unsubscribeUser((String) args.get(0), (String) args.get(1), (String) args.get(2));
                     break;
                 case LIST_SUBS:
-                    user = (String) args.get(0);
-                    impl.listSubs(user);
+                    impl.listSubs((String) args.get(0));
                     break;
                 case DELETE_USER_FEED:
-                    user = (String) args.get(0);
-                    impl.deleteUserFeed(user);
+                    impl.deleteUserFeed((String) args.get(0));
                     break;
             }
         });
