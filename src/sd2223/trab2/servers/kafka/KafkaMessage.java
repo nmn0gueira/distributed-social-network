@@ -17,7 +17,7 @@ public class KafkaMessage {
         return op;
     }
 
-    public List getArguments() {
+    public List<Object> getArguments() {
         return args;
     }
 }
