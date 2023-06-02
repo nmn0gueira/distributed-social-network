@@ -29,7 +29,7 @@ public class RestResource {
 	}
 
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
-		Log.info("fromJavaResult: " + result.value() + " " + version);
+		System.out.println("fromJavaResult: " + version);
 		if (result.isOK()) {
 			throw new WebApplicationException(Response.status(200).
 					header(FeedsServiceRep.HEADER_VERSION, version += 1L).
