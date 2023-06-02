@@ -10,7 +10,7 @@ public class KafkaMessage {
 
     public KafkaMessage(String op, Object ... args) {
         this.op = op;
-        this.args = Arrays.stream(args).toList();
+        this.args = Arrays.asList(args);
     }
 
     public String getOp() {
@@ -19,5 +19,13 @@ public class KafkaMessage {
 
     public List<Object> getArguments() {
         return args;
+    }
+
+    @Override
+    public String toString() {
+        return "KafkaMessage{" +
+                "op='" + op + '\'' +
+                ", args=" + args +
+                '}';
     }
 }

@@ -48,8 +48,9 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             List<Object> args = message.getArguments();
             switch (message.getOp()) {
                 case POST_MESSAGE:
-                    Log.info("postMessage DEBUG JAVA FEEDS REP: " + args.get(0) + " " + args.get(1) + " " + args.get(2));
-                    impl.postMessage((String) args.get(0), (String) args.get(1), (Message) args.get(2));
+                    Message msg = JSON.decode(args.get(2).toString(), Message.class);
+                    Log.info("postMessage DEBUG: " + args.get(0) + " " + args.get(1) + " " + msg);
+                    impl.postMessage((String) args.get(0), (String) args.get(1), msg);
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:
                     impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2));

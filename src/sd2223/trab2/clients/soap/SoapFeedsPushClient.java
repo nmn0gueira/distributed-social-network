@@ -9,7 +9,7 @@ import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.api.soap.push.FeedsService;
 
-public class SoapFeedsPushClient extends SoapFeedsClient implements FeedsPush {
+public class SoapFeedsPushClient extends SoapFeedsClient<FeedsService> implements FeedsPush {
 	
 	public SoapFeedsPushClient(String serverURI) {
 		super(serverURI);

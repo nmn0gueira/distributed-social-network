@@ -11,7 +11,7 @@ import sd2223.trab2.api.java.FeedsPull;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.api.soap.pull.FeedsService;
 
-public class SoapFeedsPullClient extends SoapFeedsClient implements FeedsPull {
+public class SoapFeedsPullClient extends SoapFeedsClient<FeedsService> implements FeedsPull {
 
 	public SoapFeedsPullClient(String serverURI) {
 		super(serverURI);
