@@ -16,7 +16,7 @@ public class RestResource {
 	 */
 	protected <T> T fromJavaResult(Result<T> result) {
 		if (result.isOK())
-			result.value();
+			return result.value();
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();
 

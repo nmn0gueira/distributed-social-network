@@ -12,7 +12,7 @@ import utils.Args;
 public class RestFeedsPushResource extends RestFeedsResource<FeedsPush> implements FeedsServicePush {
 
 	public RestFeedsPushResource() {
-		super(Args.contains("proxy") ? MastodonFeeds.getInstance() : new JavaFeedsPush());
+		super(new JavaFeedsPush());
 	}
 
 	@Override
