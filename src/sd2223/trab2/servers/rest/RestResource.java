@@ -32,7 +32,7 @@ public class RestResource {
 		Log.info("fromJavaResult: " + result.value() + " " + version);
 		if (result.isOK()) {
 			throw new WebApplicationException(Response.status(200).
-					header(FeedsServiceRep.HEADER_VERSION, version == null ? (version = 0L) : (version += 1L)).
+					header(FeedsServiceRep.HEADER_VERSION, version == null ? (version = 0L) : (version + 1L)).
 					encoding(MediaType.APPLICATION_JSON).entity(SyncPoint.getInstance().waitForResult(version)).build());
 		}
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )

@@ -37,6 +37,8 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
     private final KafkaPublisher publisher;
 
+    private final SyncPoint<Object> syncPoint = SyncPoint.getInstance();
+
 
     public JavaFeedsRep(T impl) {
         this.impl = impl;
@@ -44,34 +46,35 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         KafkaSubscriber subscriber = KafkaSubscriber.createSubscriber(KAFKA_BROKERS, List.of(TOPIC), FROM_BEGINNING);
         subscriber.start(false, (r) -> {
             System.out.printf("SeqN: %s %d %s\n", r.topic(), r.offset(), r.value());
-            var message = JSON.decode(r.value(), KafkaMessage.class);
-            List<Object> args = message.getArguments();
-            switch (message.getOp()) {
+            var version = r.offset();
+            var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
+            List<Object> args = kafkaMsg.getArguments();
+            switch (kafkaMsg.getOp()) {
                 case POST_MESSAGE:
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     Log.info("postMessage DEBUG: " + args.get(0) + " " + args.get(1) + " " + msg);
-                    SyncPoint.getInstance().setResult(r.offset(), impl.postMessage((String) args.get(0), (String) args.get(1), msg).value());
+                    syncPoint.setResult(version, impl.postMessage((String) args.get(0), (String) args.get(1), msg).value());
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:
-                    impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2));
+                    syncPoint.setResult(version, impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2)));
                     break;
                 case GET_MESSAGE:
-                    impl.getMessage((String) args.get(0), (long) args.get(1));
+                    syncPoint.setResult(version, impl.getMessage((String) args.get(0), (long) args.get(1)));
                     break;
                 case GET_MESSAGES:
-                    impl.getMessages((String) args.get(0), (long) args.get(1));
+                    syncPoint.setResult(version, impl.getMessages((String) args.get(0), (long) args.get(1)));
                     break;
                 case SUB_USER:
-                    impl.subUser((String) args.get(0), (String) args.get(1), (String) args.get(2));
+                    syncPoint.setResult(version, impl.subUser((String) args.get(0), (String) args.get(1), (String) args.get(2)));
                     break;
                 case UNSUBSCRIBE_USER:
-                    impl.unsubscribeUser((String) args.get(0), (String) args.get(1), (String) args.get(2));
+                    syncPoint.setResult(version, impl.unsubscribeUser((String) args.get(0), (String) args.get(1), (String) args.get(2)));
                     break;
                 case LIST_SUBS:
-                    impl.listSubs((String) args.get(0));
+                    syncPoint.setResult(version, impl.listSubs((String) args.get(0)));
                     break;
                 case DELETE_USER_FEED:
-                    impl.deleteUserFeed((String) args.get(0));
+                    syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)));
                     break;
             }
         });

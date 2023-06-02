@@ -33,36 +33,36 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public void removeFromPersonalFeed(Long version, String user, long mid, String pwd) {
-
+        fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
     }
 
     @Override
     public Message getMessage(Long version, String user, long mid) {
-        return null;
+        return fromJavaResult(impl.getMessage(user, mid), version);
     }
 
     @Override
     public List<Message> getMessages(Long version, String user, long time) {
-        return null;
+        return fromJavaResult(impl.getMessages(user, time), version);
     }
 
     @Override
     public void subUser(Long version, String user, String userSub, String pwd) {
-
+        fromJavaResult(impl.subUser(user, userSub, pwd), version);
     }
 
     @Override
     public void unsubscribeUser(Long version, String user, String userSub, String pwd) {
-
+        fromJavaResult(impl.unsubscribeUser(user, userSub, pwd), version);
     }
 
     @Override
     public List<String> listSubs(Long version, String user) {
-        return null;
+        return fromJavaResult(impl.listSubs(user), version);
     }
 
     @Override
     public void deleteUserFeed(Long version, String user) {
-
+        fromJavaResult(impl.deleteUserFeed(user), version);
     }
 }
