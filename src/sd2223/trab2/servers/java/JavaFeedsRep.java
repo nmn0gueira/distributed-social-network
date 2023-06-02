@@ -50,32 +50,47 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
             List<Object> args = kafkaMsg.getArguments();
             switch (kafkaMsg.getOp()) {
-                case POST_MESSAGE:
+                case POST_MESSAGE -> {
+                    String user = (String) args.get(0);
+                    String pwd = (String) args.get(2);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
-                    Log.info("postMessage DEBUG: " + args.get(0) + " " + args.get(1) + " " + msg);
-                    syncPoint.setResult(version, impl.postMessage((String) args.get(0), (String) args.get(1), msg).value());
-                    break;
-                case REMOVE_FROM_PERSONAL_FEED:
-                    syncPoint.setResult(version, impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2)).value());
-                    break;
-                case GET_MESSAGE:
-                    syncPoint.setResult(version, impl.getMessage((String) args.get(0), (long) args.get(1)).value());
-                    break;
-                case GET_MESSAGES:
-                    syncPoint.setResult(version, impl.getMessages((String) args.get(0), (long) args.get(1)).value());
-                    break;
-                case SUB_USER:
-                    syncPoint.setResult(version, impl.subUser((String) args.get(0), (String) args.get(1), (String) args.get(2)).value());
-                    break;
-                case UNSUBSCRIBE_USER:
-                    syncPoint.setResult(version, impl.unsubscribeUser((String) args.get(0), (String) args.get(1), (String) args.get(2)).value());
-                    break;
-                case LIST_SUBS:
-                    syncPoint.setResult(version, impl.listSubs((String) args.get(0)).value());
-                    break;
-                case DELETE_USER_FEED:
-                    syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)).value());
-                    break;
+                    syncPoint.setResult(version, impl.postMessage(user, pwd, msg).value());
+                }
+                case REMOVE_FROM_PERSONAL_FEED -> {
+                    String user = (String) args.get(0);
+                    Long mid = JSON.decode(args.get(1).toString(), Long.class);
+                    String pwd = (String) args.get(2);
+                    syncPoint.setResult(version, impl.removeFromPersonalFeed(user, mid, pwd).value());
+                }
+                case GET_MESSAGE -> {
+                    String user = (String) args.get(0);
+                    Long mid = JSON.decode(args.get(1).toString(), Long.class);
+                    syncPoint.setResult(version, impl.getMessage(user, mid).value());
+                }
+                case GET_MESSAGES -> {
+                    String user = (String) args.get(0);
+                    Long time = JSON.decode(args.get(1).toString(), Long.class);
+                    syncPoint.setResult(version, impl.getMessages(user, time).value());
+                }
+                case SUB_USER -> {
+                    String user = (String) args.get(0);
+                    String userSub = (String) args.get(1);
+                    String pwd = (String) args.get(2);
+                    syncPoint.setResult(version, impl.subUser(user, userSub, pwd).value());
+                }
+                case UNSUBSCRIBE_USER -> {
+                    String user = (String) args.get(0);
+                    String userSub = (String) args.get(1);
+                    String pwd = (String) args.get(2);
+                    syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd).value());
+
+                }
+                case LIST_SUBS -> {
+                    String user = (String) args.get(0);
+                    syncPoint.setResult(version, impl.listSubs(user).value());
+                }
+                case DELETE_USER_FEED ->
+                        syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)).value());
             }
         });
     }

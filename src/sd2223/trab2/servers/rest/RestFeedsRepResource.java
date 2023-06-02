@@ -20,14 +20,12 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     private final static Logger Log = Logger.getLogger(RestFeedsRepResource.class.getName());
 
     public RestFeedsRepResource() {
-        Log.info("RestFeedsRepResource RESOURCE DEBUG");
         this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
-        Log.info("postMessage DEBUG: " + user + " " + pwd + " " + msg);
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
