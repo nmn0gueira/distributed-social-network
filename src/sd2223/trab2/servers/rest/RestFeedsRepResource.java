@@ -23,8 +23,6 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
-        if (version == null)
-            version = -1L;
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 

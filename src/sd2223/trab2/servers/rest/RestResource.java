@@ -24,6 +24,7 @@ public class RestResource {
 		throw new WebApplicationException(statusCodeFrom(result));
 	}
 
+	// TODO: TRATAR CASO EM QUE VERSAO E NULL
 	protected <T> T fromJavaResult(Result<T> result, long version) {
 		if (result.isOK())
 			throw new WebApplicationException(Response.status(200).
