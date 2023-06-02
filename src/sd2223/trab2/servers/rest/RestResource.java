@@ -9,7 +9,11 @@ import sd2223.trab2.api.java.Result.ErrorCode;
 import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.kafka.sync.SyncPoint;
 
+import java.util.logging.Logger;
+
 public class RestResource {
+
+	private static final Logger Log = Logger.getLogger(RestResource.class.getName());
 
 	/**
 	 * Given a Result<T>, either returns the value, or throws the JAX-WS Exception
@@ -25,10 +29,12 @@ public class RestResource {
 	}
 
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
-		if (result.isOK())
+		Log.info("fromJavaResult: " + result.value() + " " + version);
+		if (result.isOK()) {
 			throw new WebApplicationException(Response.status(200).
 					header(FeedsServiceRep.HEADER_VERSION, version == null ? (version = 0L) : (version += 1L)).
 					encoding(MediaType.APPLICATION_JSON).entity(SyncPoint.getInstance().waitForResult(version)).build());
+		}
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();
 

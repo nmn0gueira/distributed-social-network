@@ -50,7 +50,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 case POST_MESSAGE:
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     Log.info("postMessage DEBUG: " + args.get(0) + " " + args.get(1) + " " + msg);
-                    SyncPoint.getInstance().setResult(r.offset(), impl.postMessage((String) args.get(0), (String) args.get(1), msg));
+                    SyncPoint.getInstance().setResult(r.offset(), impl.postMessage((String) args.get(0), (String) args.get(1), msg).value());
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:
                     impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2));
