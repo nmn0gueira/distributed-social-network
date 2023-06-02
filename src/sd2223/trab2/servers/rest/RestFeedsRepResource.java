@@ -12,10 +12,12 @@ import sd2223.trab2.servers.java.JavaFeedsRep;
 import utils.Args;
 
 @Singleton
-public class RestFeedsRepResource extends RestFeedsResource<Feeds> implements FeedsServiceRep {
+public class RestFeedsRepResource extends RestResource implements FeedsServiceRep {
+
+    final protected Feeds impl;
 
     public RestFeedsRepResource() {
-        super(Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull()));
+        this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
 
