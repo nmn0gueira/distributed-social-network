@@ -9,6 +9,7 @@ import sd2223.trab2.servers.Domain;
 import sd2223.trab2.servers.kafka.KafkaMessage;
 import sd2223.trab2.servers.kafka.KafkaPublisher;
 import sd2223.trab2.servers.kafka.KafkaSubscriber;
+import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.JSON;
 
 public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements Feeds {
@@ -76,7 +77,9 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         var res = impl.preconditions.postMessage(user, pwd, msg);
         if (res.isOK()) {
             KafkaMessage message = new KafkaMessage(POST_MESSAGE, user, pwd, msg);
-            publisher.publish(TOPIC, JSON.encode(message));
+            var offset = publisher.publish(TOPIC, JSON.encode(message));
+            SyncPoint.getInstance().setVersion(offset);
+
         }
         return res;
     }

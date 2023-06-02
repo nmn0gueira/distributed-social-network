@@ -9,7 +9,6 @@ import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.java.JavaFeedsPull;
 import sd2223.trab2.servers.java.JavaFeedsPush;
 import sd2223.trab2.servers.java.JavaFeedsRep;
-import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.Args;
 
 @Singleton
@@ -19,11 +18,12 @@ public class RestFeedsRepResource extends RestFeedsResource<Feeds> implements Fe
         super(Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull()));
     }
 
-    final protected SyncPoint<?> syncPoint = SyncPoint.getInstance();
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
-        return 0;
+        if (version == null)
+            version = -1L;
+        return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
     @Override

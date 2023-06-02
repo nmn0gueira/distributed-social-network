@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.Response.Status;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.api.java.Result.ErrorCode;
 import sd2223.trab2.api.rest.FeedsServiceRep;
+import sd2223.trab2.servers.kafka.sync.SyncPoint;
 
 public class RestResource {
 
@@ -26,8 +27,8 @@ public class RestResource {
 	protected <T> T fromJavaResult(Result<T> result, long version) {
 		if (result.isOK())
 			throw new WebApplicationException(Response.status(200).
-					header(FeedsServiceRep.HEADER_VERSION, version).
-					encoding(MediaType.APPLICATION_JSON).entity(result.value()).build());
+					header(FeedsServiceRep.HEADER_VERSION, version+1).
+					encoding(MediaType.APPLICATION_JSON).entity(SyncPoint.getInstance().waitForResult(version)).build());
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();
 
