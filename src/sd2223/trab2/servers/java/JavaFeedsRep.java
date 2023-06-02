@@ -52,7 +52,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             switch (kafkaMsg.getOp()) {
                 case POST_MESSAGE -> {
                     String user = (String) args.get(0);
-                    String pwd = (String) args.get(2);
+                    String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     syncPoint.setResult(version, impl.postMessage(user, pwd, msg).value());
                 }
