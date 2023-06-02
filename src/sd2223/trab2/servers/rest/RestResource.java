@@ -24,11 +24,10 @@ public class RestResource {
 		throw new WebApplicationException(statusCodeFrom(result));
 	}
 
-	// TODO: TRATAR CASO EM QUE VERSAO E NULL
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
 		if (result.isOK())
 			throw new WebApplicationException(Response.status(200).
-					header(FeedsServiceRep.HEADER_VERSION, version == null ? version = 0L : version+1).
+					header(FeedsServiceRep.HEADER_VERSION, version == null ? (version = 0L) : (version += 1L)).
 					encoding(MediaType.APPLICATION_JSON).entity(SyncPoint.getInstance().waitForResult(version)).build());
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();

@@ -50,7 +50,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 case POST_MESSAGE:
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     Log.info("postMessage DEBUG: " + args.get(0) + " " + args.get(1) + " " + msg);
-                    impl.postMessage((String) args.get(0), (String) args.get(1), msg);
+                    SyncPoint.getInstance().setResult(r.offset(), impl.postMessage((String) args.get(0), (String) args.get(1), msg));
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:
                     impl.removeFromPersonalFeed((String) args.get(0), (long) args.get(1), (String) args.get(2));
@@ -82,8 +82,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         var res = impl.preconditions.postMessage(user, pwd, msg);
         if (res.isOK()) {
             KafkaMessage message = new KafkaMessage(POST_MESSAGE, user, pwd, msg);
-            var offset = publisher.publish(TOPIC, JSON.encode(message));
-            SyncPoint.getInstance().setVersion(offset);
+            publisher.publish(TOPIC, JSON.encode(message));
 
         }
         return res;
