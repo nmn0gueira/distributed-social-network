@@ -10,7 +10,7 @@ import utils.Args;
 
 
 public class RepFeedsServer extends AbstractRestServer {
-    public static final int PORT = 4567;
+    public static final int PORT = 15678;
 
     private static final Logger Log = Logger.getLogger(RepFeedsServer.class.getName());
 
@@ -20,7 +20,7 @@ public class RepFeedsServer extends AbstractRestServer {
 
     @Override
     void registerResources(ResourceConfig config) {
-        config.register(RestFeedsRepResource.class);
+        config.register(new RestFeedsRepResource());
     }
 
     public static void main(String[] args) throws Exception {

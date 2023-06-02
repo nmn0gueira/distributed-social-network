@@ -1,6 +1,7 @@
 package sd2223.trab2.servers.java;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.Feeds;
@@ -13,6 +14,8 @@ import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.JSON;
 
 public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements Feeds {
+
+    private static final Logger Log = Logger.getLogger(JavaFeedsRep.class.getName());
 
     private final T impl;
 
@@ -45,6 +48,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             List<Object> args = message.getArguments();
             switch (message.getOp()) {
                 case POST_MESSAGE:
+                    Log.info("postMessage DEBUG JAVA FEEDS REP: " + args.get(0) + " " + args.get(1) + " " + args.get(2));
                     impl.postMessage((String) args.get(0), (String) args.get(1), (Message) args.get(2));
                     break;
                 case REMOVE_FROM_PERSONAL_FEED:

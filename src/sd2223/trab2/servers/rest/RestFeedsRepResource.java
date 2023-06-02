@@ -1,6 +1,7 @@
 package sd2223.trab2.servers.rest;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import jakarta.inject.Singleton;
 import sd2223.trab2.api.Message;
@@ -16,13 +17,17 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     final protected Feeds impl;
 
+    private final static Logger Log = Logger.getLogger(RestFeedsRepResource.class.getName());
+
     public RestFeedsRepResource() {
+        Log.info("RestFeedsRepResource RESOURCE DEBUG");
         this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
+        Log.info("postMessage DEBUG: " + user + " " + pwd + " " + msg);
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
