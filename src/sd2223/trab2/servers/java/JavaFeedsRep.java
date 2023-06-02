@@ -54,7 +54,8 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String user = (String) args.get(0);
                     String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
-                    syncPoint.setResult(version, impl.postMessage(user, pwd, msg).value());
+                    var result = impl.postMessage(user, pwd, msg).value();
+                    syncPoint.setResult(version, result);
                 }
                 case REMOVE_FROM_PERSONAL_FEED -> {
                     String user = (String) args.get(0);
@@ -65,7 +66,10 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 case GET_MESSAGE -> {
                     String user = (String) args.get(0);
                     Long mid = JSON.decode(args.get(1).toString(), Long.class);
-                    syncPoint.setResult(version, impl.getMessage(user, mid).value());
+                    Log.info("GET_MESSAGE: " + user + " " + mid);
+                    var result = impl.getMessage(user, mid);
+                    System.out.println("RESULT: " + result);
+                    syncPoint.setResult(version, result.value());
                 }
                 case GET_MESSAGES -> {
                     String user = (String) args.get(0);

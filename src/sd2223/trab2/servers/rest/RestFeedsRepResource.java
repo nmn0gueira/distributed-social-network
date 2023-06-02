@@ -1,5 +1,6 @@
 package sd2223.trab2.servers.rest;
 
+import java.io.SyncFailedException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -10,6 +11,7 @@ import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.java.JavaFeedsPull;
 import sd2223.trab2.servers.java.JavaFeedsPush;
 import sd2223.trab2.servers.java.JavaFeedsRep;
+import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.Args;
 
 @Singleton
@@ -23,9 +25,14 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
+    final protected SyncPoint<?> syncPoint = SyncPoint.getInstance();
+
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
@@ -36,6 +43,9 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public Message getMessage(Long version, String user, long mid) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.getMessage(user, mid), version);
     }
 
