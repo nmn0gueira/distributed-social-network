@@ -46,12 +46,15 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        return fromJavaResult(impl.getMessage(user, mid), version);
+        return fromJavaResult(impl.getMessage(user, mid));
     }
 
     @Override
     public List<Message> getMessages(Long version, String user, long time) {
-        return fromJavaResult(impl.getMessages(user, time), version);
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
+        return fromJavaResult(impl.getMessages(user, time));
     }
 
     @Override

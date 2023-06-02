@@ -63,19 +63,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String pwd = (String) args.get(2);
                     syncPoint.setResult(version, impl.removeFromPersonalFeed(user, mid, pwd).value());
                 }
-                case GET_MESSAGE -> {
-                    String user = (String) args.get(0);
-                    Long mid = JSON.decode(args.get(1).toString(), Long.class);
-                    Log.info("GET_MESSAGE: " + user + " " + mid);
-                    var result = impl.getMessage(user, mid);
-                    System.out.println("RESULT: " + result);
-                    syncPoint.setResult(version, result.value());
-                }
-                case GET_MESSAGES -> {
-                    String user = (String) args.get(0);
-                    Long time = JSON.decode(args.get(1).toString(), Long.class);
-                    syncPoint.setResult(version, impl.getMessages(user, time).value());
-                }
                 case SUB_USER -> {
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
@@ -88,10 +75,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String pwd = (String) args.get(2);
                     syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd).value());
 
-                }
-                case LIST_SUBS -> {
-                    String user = (String) args.get(0);
-                    syncPoint.setResult(version, impl.listSubs(user).value());
                 }
                 case DELETE_USER_FEED ->
                         syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)).value());
@@ -122,22 +105,12 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
     @Override
     public Result<Message> getMessage(String user, long mid) {
-        var res = impl.preconditions.getMessage(user, mid);
-        if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(GET_MESSAGE, user, mid);
-            publisher.publish(TOPIC, JSON.encode(message));
-        }
-        return res;
+        return impl.getMessage(user, mid);
     }
 
     @Override
     public Result<List<Message>> getMessages(String user, long time) {
-        var res = impl.preconditions.getMessages(user, time);
-        if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(GET_MESSAGES, user, time);
-            publisher.publish(TOPIC, JSON.encode(message));
-        }
-        return res;
+        return impl.getMessages(user, time);
     }
 
     @Override
@@ -162,12 +135,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
     @Override
     public Result<List<String>> listSubs(String user) {
-        var res = impl.preconditions.listSubs(user);
-        if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(LIST_SUBS, user);
-            publisher.publish(TOPIC, JSON.encode(message));
-        }
-        return res;
+        return impl.listSubs(user);
     }
 
     @Override
