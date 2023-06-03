@@ -55,7 +55,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String user = (String) args.get(0);
                     String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
-                    AtomicLong mid = JSON.decode(args.get(3).toString(), AtomicLong.class);
+                    Long mid = JSON.decode(args.get(3).toString(), Long.class);
                     var result = postMessageRep(user, pwd, msg, mid).value();
                     System.out.println("Result DEBUG: " + result);
                     syncPoint.setResult(version, result);
@@ -87,22 +87,21 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
-        var res = impl.preconditions.postMessage(user, pwd, msg);
+        var res = impl.postMessage(user, pwd, msg); // Operation is executed locally
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(POST_MESSAGE_REP, user, pwd, msg, Domain.uuid()* JavaFeedsCommon.FEEDS_MID_PREFIX);
+            KafkaMessage message = new KafkaMessage(POST_MESSAGE_REP, user, pwd, msg, res.value());
             publisher.publish(TOPIC, JSON.encode(message));
 
         }
         return res;
     }
 
-    private Result<Long> postMessageRep(String user, String pwd, Message msg, AtomicLong serial) {
+    private Result<Long> postMessageRep(String user, String pwd, Message msg, Long mid) {
 
         var preconditionsResult = impl.preconditions.postMessage(user, pwd, msg);
         if( ! preconditionsResult.isOK() )
             return preconditionsResult;
 
-        Long mid = serial.incrementAndGet();
         msg.setId(mid);
         // msg.setCreationTime(System.currentTimeMillis());
 
