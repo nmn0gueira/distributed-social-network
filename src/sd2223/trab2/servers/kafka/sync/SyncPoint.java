@@ -14,6 +14,8 @@ public class SyncPoint<T> {
 	}
 
 	private long version = -1L;
+
+	private long offset = 0L;
 	private Map<Long, T> results;
 
 	public SyncPoint() {
@@ -56,6 +58,18 @@ public class SyncPoint<T> {
 	public synchronized void setVersion(long n) {
 		version = n;
 		this.notifyAll();
+	}
+
+	public synchronized long getOffset() {
+		return version;
+	}
+
+	public synchronized void setOffset(long offset) {
+		this.offset = offset;
+	}
+
+	public synchronized void incOffset() {
+		offset++;
 	}
 
 	public synchronized String toString() {

@@ -33,24 +33,20 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
-        Log.info("Operation postMessage offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        System.out.println("version: " + version);
-        version += Domain.offset();
-        System.out.println("version after offset: " + version);
-        Domain.setOffset(0);
+        version += syncPoint.getOffset();
+        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
     @Override
     public void removeFromPersonalFeed(Long version, String user, long mid, String pwd) {
-        Log.info("Operation removeFromPersonalFeed offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        version += Domain.offset();
-        Domain.setOffset(0);
+        version += syncPoint.getOffset();
+        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
     }
@@ -59,59 +55,51 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     public Message getMessage(Long version, String user, long mid) {
         if (version == null)
             version = -1L;
-        version += Domain.offset();
+        version += syncPoint.getOffset();
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.getMessage(user, mid));
     }
 
     @Override
     public List<Message> getMessages(Long version, String user, long time) {
-        Log.info("Operation getMessages offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        version += Domain.offset();
+        version += syncPoint.getOffset();
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.getMessages(user, time));
     }
 
     @Override
     public void subUser(Long version, String user, String userSub, String pwd) {
-        Log.info("Operation subUser offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        version += Domain.offset();
-        Domain.setOffset(0);
+        version += syncPoint.getOffset();
+        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.subUser(user, userSub, pwd), version);
     }
 
     @Override
     public void unsubscribeUser(Long version, String user, String userSub, String pwd) {
-        Log.info("Operation unsubscribeUser offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        version += Domain.offset();
-        Domain.setOffset(0);
+        version += syncPoint.getOffset();
+        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.unsubscribeUser(user, userSub, pwd), version);
     }
 
     @Override
     public List<String> listSubs(Long version, String user) {
-        Log.info("Operation listSubs offset before: " + Domain.offset());
         if (version == null)
             version = -1L;
-        version += Domain.offset();
+        version += syncPoint.getOffset();
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.listSubs(user));
     }
 
     @Override
     public void deleteUserFeed(Long version, String user) {
-        Log.info("Operation deleteUserFeed offset before: " + Domain.offset());
-        var res = impl.deleteUserFeed(user);
-        Log.info("Operation deleteUserFeed result: " + res);
-        fromJavaResult(res);
-
+        fromJavaResult(impl.deleteUserFeed(user));
     }
 }
