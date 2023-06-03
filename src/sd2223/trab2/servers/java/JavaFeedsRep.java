@@ -164,13 +164,13 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     @Override
     public Result<Void> deleteUserFeed(String user) {
         var res = impl.preconditions.deleteUserFeed(user);
-        if (res.isOK() && impl.feeds.containsKey(user)) {   // Preconditions do not check for users without feeds
-            KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
-            publisher.publish(TOPIC, JSON.encode(message));
+        if (!res.isOK())
+            return res;
+        if (!impl.feeds.containsKey(user)) {    // Preconditions do not check for users without feeds
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         }
-        else
-            res = Result.error(Result.ErrorCode.INTERNAL_ERROR);
-
+        KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
+        publisher.publish(TOPIC, JSON.encode(message));
         return res;
     }
 }
