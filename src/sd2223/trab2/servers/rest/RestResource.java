@@ -27,13 +27,14 @@ public class RestResource {
 
 		throw new WebApplicationException(statusCodeFrom(result));
 	}
-
+	@SuppressWarnings("unchecked")
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
 		System.out.println("fromJavaResult: " + version);
 		if (result.isOK()) {
+			Result<T> res = (Result<T>)SyncPoint.getInstance().waitForResult(version+=1L);
 			throw new WebApplicationException(Response.status(200).
-					header(FeedsServiceRep.HEADER_VERSION, version += 1L).
-					encoding(MediaType.APPLICATION_JSON).entity(SyncPoint.getInstance().waitForResult(version)).build());
+					header(FeedsServiceRep.HEADER_VERSION, version).
+					encoding(MediaType.APPLICATION_JSON).entity(res.value()).build());
 		}
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();

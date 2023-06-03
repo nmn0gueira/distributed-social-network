@@ -1,7 +1,6 @@
 package sd2223.trab2.servers.java;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 import sd2223.trab2.api.Message;
@@ -20,6 +19,8 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
 
     private final T impl;
 
+    private static final long REPLICA_ID = Domain.uuid();
+
     private static final String KAFKA_BROKERS = "kafka:9092";
 
     private static final String FROM_BEGINNING = "earliest";
@@ -27,13 +28,10 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     private static final String TOPIC = Domain.get();
 
     // Operation constants used in Kafka messages
-    private static final String POST_MESSAGE_REP = "postMessageRep";
+    private static final String POST_MESSAGE = "postMessage";
     private static final String REMOVE_FROM_PERSONAL_FEED = "removeFromPersonalFeed";
-    private static final String GET_MESSAGE = "getMessage";
-    private static final String GET_MESSAGES = "getMessages";
     private static final String SUB_USER = "subUser";
     private static final String UNSUBSCRIBE_USER = "unsubscribeUser";
-    private static final String LIST_SUBS = "listSubs";
     private static final String DELETE_USER_FEED = "deleteUserFeed";
 
     private final KafkaPublisher publisher;
@@ -49,49 +47,51 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             System.out.printf("SeqN: %s %d %s\n", r.topic(), r.offset(), r.value());
             var version = r.offset();
             var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
+            long messageReplicaId = kafkaMsg.getReplicaId();
             List<Object> args = kafkaMsg.getArguments();
             switch (kafkaMsg.getOp()) {
-                case POST_MESSAGE_REP -> {
+                case POST_MESSAGE -> {
                     String user = (String) args.get(0);
                     String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     Long mid = JSON.decode(args.get(3).toString(), Long.class);
-                    var result = postMessageRep(user, pwd, msg, mid).value();
-                    System.out.println("Result DEBUG: " + result);
+                    var result = messageReplicaId == REPLICA_ID ? impl.postMessage(user, pwd, msg) : postMessageRep(user, pwd, msg, mid);
                     syncPoint.setResult(version, result);
                 }
                 case REMOVE_FROM_PERSONAL_FEED -> {
                     String user = (String) args.get(0);
                     Long mid = JSON.decode(args.get(1).toString(), Long.class);
                     String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, impl.removeFromPersonalFeed(user, mid, pwd).value());
+                    var result = impl.removeFromPersonalFeed(user, mid, pwd);
+                    System.out.println("Result DEBUG: " + result);
+                    syncPoint.setResult(version, result);
                 }
                 case SUB_USER -> {
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, impl.subUser(user, userSub, pwd).value());
+                    syncPoint.setResult(version, impl.subUser(user, userSub, pwd));
                 }
                 case UNSUBSCRIBE_USER -> {
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd).value());
+                    syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd));
 
                 }
                 case DELETE_USER_FEED ->
-                        syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)).value());
+                        syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)));
             }
         });
     }
 
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
-        var res = impl.postMessage(user, pwd, msg); // Operation is executed locally
+        var res = impl.preconditions.postMessage(user, pwd, msg); // Operation is executed locally
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(POST_MESSAGE_REP, user, pwd, msg, res.value());
+            // Serial number will be incremented by the publisher
+            KafkaMessage message = new KafkaMessage(REPLICA_ID, POST_MESSAGE, user, pwd, msg, impl.serial.get() + 1L);
             publisher.publish(TOPIC, JSON.encode(message));
-
         }
         return res;
     }
@@ -103,7 +103,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             return preconditionsResult;
 
         msg.setId(mid);
-        // msg.setCreationTime(System.currentTimeMillis());
 
         JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
         synchronized (ufi.user()) {
@@ -119,7 +118,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         var res = impl.preconditions.removeFromPersonalFeed(user, mid, pwd);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(REMOVE_FROM_PERSONAL_FEED, user, mid, pwd);
+            KafkaMessage message = new KafkaMessage(REPLICA_ID, REMOVE_FROM_PERSONAL_FEED, user, mid, pwd);
             publisher.publish(TOPIC, JSON.encode(message));
         }
         return res;
@@ -139,7 +138,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Void> subUser(String user, String userSub, String pwd) {
         var res = impl.preconditions.subUser(user, userSub, pwd);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(SUB_USER, user, userSub, pwd);
+            KafkaMessage message = new KafkaMessage(REPLICA_ID, SUB_USER, user, userSub, pwd);
             publisher.publish(TOPIC, JSON.encode(message));
         }
         return res;
@@ -149,7 +148,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
         var res = impl.preconditions.unsubscribeUser(user, userSub, pwd);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(UNSUBSCRIBE_USER, user, userSub, pwd);
+            KafkaMessage message = new KafkaMessage(REPLICA_ID, UNSUBSCRIBE_USER, user, userSub, pwd);
             publisher.publish(TOPIC, JSON.encode(message));
         }
         return res;
@@ -164,7 +163,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Void> deleteUserFeed(String user) {
         var res = impl.preconditions.deleteUserFeed(user);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(DELETE_USER_FEED, user);
+            KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
             publisher.publish(TOPIC, JSON.encode(message));
         }
         return res;

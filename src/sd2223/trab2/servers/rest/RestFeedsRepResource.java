@@ -38,6 +38,9 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public void removeFromPersonalFeed(Long version, String user, long mid, String pwd) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
     }
 
@@ -59,21 +62,33 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     @Override
     public void subUser(Long version, String user, String userSub, String pwd) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.subUser(user, userSub, pwd), version);
     }
 
     @Override
     public void unsubscribeUser(Long version, String user, String userSub, String pwd) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.unsubscribeUser(user, userSub, pwd), version);
     }
 
     @Override
     public List<String> listSubs(Long version, String user) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.listSubs(user), version);
     }
 
     @Override
     public void deleteUserFeed(Long version, String user) {
+        if (version == null)
+            version = -1L;
+        syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.deleteUserFeed(user), version);
     }
 }

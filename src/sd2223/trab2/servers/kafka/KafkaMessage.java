@@ -5,12 +5,18 @@ import java.util.List;
 
 public class KafkaMessage {
 
-    private String op;
-    private List<Object> args;
+    private final long replicaId;
+    private final String op;
+    private final List<Object> args;
 
-    public KafkaMessage(String op, Object ... args) {
+    public KafkaMessage(long replicaId, String op, Object ... args) {
+        this.replicaId = replicaId;
         this.op = op;
         this.args = Arrays.asList(args);
+    }
+
+    public long getReplicaId() {
+        return replicaId;
     }
 
     public String getOp() {
@@ -24,7 +30,8 @@ public class KafkaMessage {
     @Override
     public String toString() {
         return "KafkaMessage{" +
-                "op='" + op + '\'' +
+                "replicaId=" + replicaId +
+                ", op='" + op + '\'' +
                 ", args=" + args +
                 '}';
     }
