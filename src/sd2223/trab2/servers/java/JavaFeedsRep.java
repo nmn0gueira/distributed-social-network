@@ -83,6 +83,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String user = (String) args.get(0);
                     var result = this.impl.deleteUserFeed(user);
                     syncPoint.setResult(version, result);
+                    Domain.incOffset();
                 }
             }
         });
