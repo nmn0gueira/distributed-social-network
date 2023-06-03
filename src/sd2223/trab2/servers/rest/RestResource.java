@@ -29,10 +29,11 @@ public class RestResource {
 	}
 	@SuppressWarnings("unchecked")
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
-		System.out.println("fromJavaResult RESULT DEBUG: " + result + "version: " + version);
+		System.out.println("fromJavaResult: " + result + " version: " + version);
 		if (result.isOK()) {
-			Result<T> res = (Result<T>)SyncPoint.getInstance().waitForResult(version+=1L);
-			//System.out.println("fromJavaResult OK DEBUG: " + res);
+			var sync = SyncPoint.getInstance();
+			sync.setOffset(0);
+			Result<T> res = (Result<T>)sync.waitForResult(version+=1L);
 			var value = res.value();
 			var status = value == null ? 204 : 200;
 			throw new WebApplicationException(Response.status(status).

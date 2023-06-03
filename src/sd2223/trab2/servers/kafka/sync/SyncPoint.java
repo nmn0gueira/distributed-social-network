@@ -61,7 +61,7 @@ public class SyncPoint<T> {
 	}
 
 	public synchronized long getOffset() {
-		return version;
+		return offset;
 	}
 
 	public synchronized void setOffset(long offset) {

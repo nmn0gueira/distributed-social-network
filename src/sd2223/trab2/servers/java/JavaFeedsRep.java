@@ -70,6 +70,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
                     var result = this.impl.subUser(user, userSub, pwd);
+                    System.out.println("Result DEBUG: " + result);
                     syncPoint.setResult(version, result);
                 }
                 case UNSUBSCRIBE_USER -> {
@@ -101,7 +102,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     }
 
     private Result<Long> postMessageRep(String user, String pwd, Message msg, Long mid) {
-
         var preconditionsResult = impl.preconditions.postMessage(user, pwd, msg);
         if( ! preconditionsResult.isOK() )
             return preconditionsResult;
@@ -121,10 +121,20 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
         var res = impl.preconditions.removeFromPersonalFeed(user, mid, pwd);
-        if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(REPLICA_ID, REMOVE_FROM_PERSONAL_FEED, user, mid, pwd);
-            publisher.publish(TOPIC, JSON.encode(message));
+        if (!res.isOK())
+            return res;
+        var ufi = impl.feeds.get(user);
+        if (ufi == null) {
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         }
+        synchronized (ufi.user()) {
+            if (!ufi.messages().contains(mid)) {
+                return Result.error(Result.ErrorCode.NOT_FOUND);
+            }
+        }
+        KafkaMessage message = new KafkaMessage(REPLICA_ID, REMOVE_FROM_PERSONAL_FEED, user, mid, pwd);
+        publisher.publish(TOPIC, JSON.encode(message));
+
         return res;
     }
 

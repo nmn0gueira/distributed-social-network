@@ -7,7 +7,6 @@ import jakarta.inject.Singleton;
 import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.rest.FeedsServiceRep;
-import sd2223.trab2.servers.Domain;
 import sd2223.trab2.servers.java.JavaFeedsPull;
 import sd2223.trab2.servers.java.JavaFeedsPush;
 import sd2223.trab2.servers.java.JavaFeedsRep;
@@ -18,8 +17,6 @@ import utils.Args;
 public class RestFeedsRepResource extends RestResource implements FeedsServiceRep {
 
     final protected Feeds impl;
-
-
 
     private final static Logger Log = Logger.getLogger(RestFeedsRepResource.class.getName());
 
@@ -36,7 +33,6 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         version += syncPoint.getOffset();
-        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
@@ -46,7 +42,6 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         version += syncPoint.getOffset();
-        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
     }
@@ -74,7 +69,6 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         version += syncPoint.getOffset();
-        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.subUser(user, userSub, pwd), version);
     }
@@ -84,7 +78,6 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         version += syncPoint.getOffset();
-        syncPoint.setOffset(0);
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.unsubscribeUser(user, userSub, pwd), version);
     }
