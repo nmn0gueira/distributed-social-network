@@ -81,7 +81,8 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 }
                 case DELETE_USER_FEED -> {
                     String user = (String) args.get(0);
-                    this.impl.deleteUserFeed(user);
+                    var result = this.impl.deleteUserFeed(user);
+                    syncPoint.setResult(version, result);
                 }
             }
         });
