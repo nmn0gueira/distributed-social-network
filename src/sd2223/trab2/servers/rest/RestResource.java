@@ -32,9 +32,11 @@ public class RestResource {
 		System.out.println("fromJavaResult: " + version);
 		if (result.isOK()) {
 			Result<T> res = (Result<T>)SyncPoint.getInstance().waitForResult(version+=1L);
-			throw new WebApplicationException(Response.status(200).
+			var value = res.value();
+			var status = value == null ? 204 : 200;
+			throw new WebApplicationException(Response.status(status).
 					header(FeedsServiceRep.HEADER_VERSION, version).
-					encoding(MediaType.APPLICATION_JSON).entity(res.value()).build());
+					encoding(MediaType.APPLICATION_JSON).entity(value).build());
 		}
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null )
 			return result.errorValue();
