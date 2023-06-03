@@ -1,6 +1,7 @@
 package sd2223.trab2.servers.java;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 import sd2223.trab2.api.Message;
@@ -26,7 +27,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     private static final String TOPIC = Domain.get();
 
     // Operation constants used in Kafka messages
-    private static final String POST_MESSAGE = "postMessage";
+    private static final String POST_MESSAGE_REP = "postMessageRep";
     private static final String REMOVE_FROM_PERSONAL_FEED = "removeFromPersonalFeed";
     private static final String GET_MESSAGE = "getMessage";
     private static final String GET_MESSAGES = "getMessages";
@@ -50,11 +51,13 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
             List<Object> args = kafkaMsg.getArguments();
             switch (kafkaMsg.getOp()) {
-                case POST_MESSAGE -> {
+                case POST_MESSAGE_REP -> {
                     String user = (String) args.get(0);
                     String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
-                    var result = impl.postMessage(user, pwd, msg).value();
+                    AtomicLong mid = JSON.decode(args.get(3).toString(), AtomicLong.class);
+                    var result = postMessageRep(user, pwd, msg, mid).value();
+                    System.out.println("Result DEBUG: " + result);
                     syncPoint.setResult(version, result);
                 }
                 case REMOVE_FROM_PERSONAL_FEED -> {
@@ -86,12 +89,32 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Long> postMessage(String user, String pwd, Message msg) {
         var res = impl.preconditions.postMessage(user, pwd, msg);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(POST_MESSAGE, user, pwd, msg);
+            KafkaMessage message = new KafkaMessage(POST_MESSAGE_REP, user, pwd, msg, Domain.uuid()* JavaFeedsCommon.FEEDS_MID_PREFIX);
             publisher.publish(TOPIC, JSON.encode(message));
 
         }
         return res;
     }
+
+    private Result<Long> postMessageRep(String user, String pwd, Message msg, AtomicLong serial) {
+
+        var preconditionsResult = impl.preconditions.postMessage(user, pwd, msg);
+        if( ! preconditionsResult.isOK() )
+            return preconditionsResult;
+
+        Long mid = serial.incrementAndGet();
+        msg.setId(mid);
+        // msg.setCreationTime(System.currentTimeMillis());
+
+        JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
+        synchronized (ufi.user()) {
+            ufi.messages().add(mid);
+            impl.messages.putIfAbsent(mid, msg);
+        }
+        return Result.ok(mid);
+    }
+
+
 
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
