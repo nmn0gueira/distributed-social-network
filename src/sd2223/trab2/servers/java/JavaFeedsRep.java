@@ -55,22 +55,23 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String pwd = (String) args.get(1);
                     Message msg = JSON.decode(args.get(2).toString(), Message.class);
                     Long mid = JSON.decode(args.get(3).toString(), Long.class);
-                    var result = messageReplicaId == REPLICA_ID ? impl.postMessage(user, pwd, msg) : postMessageRep(user, pwd, msg, mid);
+                    var result = messageReplicaId == REPLICA_ID ? this.impl.postMessage(user, pwd, msg) : postMessageRep(user, pwd, msg, mid);
                     syncPoint.setResult(version, result);
                 }
                 case REMOVE_FROM_PERSONAL_FEED -> {
                     String user = (String) args.get(0);
                     Long mid = JSON.decode(args.get(1).toString(), Long.class);
                     String pwd = (String) args.get(2);
-                    var result = impl.removeFromPersonalFeed(user, mid, pwd);
-                    System.out.println("Result DEBUG: " + result);
+                    var result = this.impl.removeFromPersonalFeed(user, mid, pwd);
                     syncPoint.setResult(version, result);
                 }
                 case SUB_USER -> {
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, impl.subUser(user, userSub, pwd));
+                    var result = this.impl.subUser(user, userSub, pwd);
+                    System.out.println("Result SUBUSER DEBUG: " + result);
+                    syncPoint.setResult(version, result);
                 }
                 case UNSUBSCRIBE_USER -> {
                     String user = (String) args.get(0);
@@ -79,8 +80,12 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd));
 
                 }
-                case DELETE_USER_FEED ->
-                        syncPoint.setResult(version, impl.deleteUserFeed((String) args.get(0)));
+                case DELETE_USER_FEED -> {
+                    String user = (String) args.get(0);
+                    var result = this.impl.deleteUserFeed(user);
+                    System.out.println("Result DELETE USER FEED DEBUG: " + result);
+                    syncPoint.setResult(version, result);
+                }
             }
         });
     }
@@ -162,7 +167,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     @Override
     public Result<Void> deleteUserFeed(String user) {
         var res = impl.preconditions.deleteUserFeed(user);
-        if (res.isOK()) {
+        if (res.isOK() && impl.feeds.containsKey(user)) {   // Preconditions do not check for users without feeds
             KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
             publisher.publish(TOPIC, JSON.encode(message));
         }
