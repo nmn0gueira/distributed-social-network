@@ -39,7 +39,7 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         version += offset;
         offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        return fromJavaResult(impl.postMessage(user, pwd, msg), version + offset);
+        return fromJavaResult(impl.postMessage(user, pwd, msg), version);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         version += offset;
         offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version + offset);
+        fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         version += offset;
         offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        fromJavaResult(impl.subUser(user, userSub, pwd), version + offset);
+        fromJavaResult(impl.subUser(user, userSub, pwd), version);
     }
 
     @Override
