@@ -81,8 +81,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 }
                 case DELETE_USER_FEED -> {
                     String user = (String) args.get(0);
-                    var result = this.impl.deleteUserFeed(user);
-                    syncPoint.setResult(version, result);
+                    this.impl.deleteUserFeed(user);
                 }
             }
         });
@@ -169,6 +168,9 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
             KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
             publisher.publish(TOPIC, JSON.encode(message));
         }
+        else
+            res = Result.error(Result.ErrorCode.INTERNAL_ERROR);
+
         return res;
     }
 }

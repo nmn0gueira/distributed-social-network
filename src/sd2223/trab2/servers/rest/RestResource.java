@@ -32,6 +32,7 @@ public class RestResource {
 		System.out.println("fromJavaResult RESULT DEBUG: " + result + "version: " + version);
 		if (result.isOK()) {
 			Result<T> res = (Result<T>)SyncPoint.getInstance().waitForResult(version+=1L);
+			//System.out.println("fromJavaResult OK DEBUG: " + res);
 			var value = res.value();
 			var status = value == null ? 204 : 200;
 			throw new WebApplicationException(Response.status(status).

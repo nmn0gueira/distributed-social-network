@@ -26,7 +26,6 @@ public class SyncPoint<T> {
 	public synchronized void waitForVersion(long n, int waitPeriod) {
 		while (version < n) {
 			try {
-				System.out.println("Waiting for version " + n + " current version is " + version);
 				this.wait(waitPeriod);
 			} catch (InterruptedException e) {
 			}

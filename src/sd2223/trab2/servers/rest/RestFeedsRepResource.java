@@ -19,35 +19,44 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
 
     final protected Feeds impl;
 
+
+
     private final static Logger Log = Logger.getLogger(RestFeedsRepResource.class.getName());
 
     public RestFeedsRepResource() {
         this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
-    final protected SyncPoint<?> syncPoint = SyncPoint.getInstance();
+    final private SyncPoint<?> syncPoint = SyncPoint.getInstance();
+
+    protected long offset = 0;
 
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
         if (version == null)
             version = -1L;
+        version += offset;
+        offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        return fromJavaResult(impl.postMessage(user, pwd, msg), version);
+        return fromJavaResult(impl.postMessage(user, pwd, msg), version + offset);
     }
 
     @Override
     public void removeFromPersonalFeed(Long version, String user, long mid, String pwd) {
         if (version == null)
             version = -1L;
+        version += offset;
+        offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version);
+        fromJavaResult(impl.removeFromPersonalFeed(user, mid, pwd), version + offset);
     }
 
     @Override
     public Message getMessage(Long version, String user, long mid) {
         if (version == null)
             version = -1L;
+        version += offset;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.getMessage(user, mid));
     }
@@ -56,6 +65,7 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     public List<Message> getMessages(Long version, String user, long time) {
         if (version == null)
             version = -1L;
+        version += offset;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.getMessages(user, time));
     }
@@ -64,14 +74,18 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     public void subUser(Long version, String user, String userSub, String pwd) {
         if (version == null)
             version = -1L;
+        version += offset;
+        offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        fromJavaResult(impl.subUser(user, userSub, pwd), version);
+        fromJavaResult(impl.subUser(user, userSub, pwd), version + offset);
     }
 
     @Override
     public void unsubscribeUser(Long version, String user, String userSub, String pwd) {
         if (version == null)
             version = -1L;
+        version += offset;
+        offset = 0;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         fromJavaResult(impl.unsubscribeUser(user, userSub, pwd), version);
     }
@@ -80,12 +94,16 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     public List<String> listSubs(Long version, String user) {
         if (version == null)
             version = -1L;
+        version += offset;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
         return fromJavaResult(impl.listSubs(user));
     }
 
     @Override
     public void deleteUserFeed(Long version, String user) {
-        fromJavaResult(impl.deleteUserFeed(user));
+        var res = impl.deleteUserFeed(user);
+        fromJavaResult(res);
+        if (res.isOK())
+            offset++;   // This operation does not get sent back to tester
     }
 }
