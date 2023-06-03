@@ -81,12 +81,11 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
         if (version == null)
             version = -1L;
         syncPoint.waitForVersion(version, Integer.MAX_VALUE);
-        return fromJavaResult(impl.listSubs(user), version);
+        return fromJavaResult(impl.listSubs(user));
     }
 
     @Override
     public void deleteUserFeed(Long version, String user) {
-        System.out.println("deleteUserFeed: " + version + " " + user);
         fromJavaResult(impl.deleteUserFeed(user));
     }
 }

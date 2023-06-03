@@ -32,7 +32,6 @@ public class RestResource {
 		System.out.println("fromJavaResult RESULT DEBUG: " + result + "version: " + version);
 		if (result.isOK()) {
 			Result<T> res = (Result<T>)SyncPoint.getInstance().waitForResult(version+=1L);
-			System.out.println("fromJavaResult RESULT OK DEBUG: " + res);
 			var value = res.value();
 			var status = value == null ? 204 : 200;
 			throw new WebApplicationException(Response.status(status).
@@ -40,7 +39,6 @@ public class RestResource {
 					encoding(MediaType.APPLICATION_JSON).entity(value).build());
 		}
 		if( result.error() == ErrorCode.REDIRECTED && result.errorValue() != null ) {
-			System.out.println("fromJavaResult ERROR DEBUG: " + result.errorValue());
 			return result.errorValue();
 		}
 		throw new WebApplicationException(statusCodeFrom(result));

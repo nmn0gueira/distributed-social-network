@@ -70,7 +70,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
                     var result = this.impl.subUser(user, userSub, pwd);
-                    System.out.println("Result SUBUSER DEBUG: " + result);
                     syncPoint.setResult(version, result);
                 }
                 case UNSUBSCRIBE_USER -> {
@@ -83,7 +82,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                 case DELETE_USER_FEED -> {
                     String user = (String) args.get(0);
                     var result = this.impl.deleteUserFeed(user);
-                    System.out.println("Result DELETE USER FEED DEBUG: " + result);
                     syncPoint.setResult(version, result);
                 }
             }
