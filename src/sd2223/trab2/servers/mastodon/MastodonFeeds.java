@@ -3,6 +3,7 @@ package sd2223.trab2.servers.mastodon;
 import static sd2223.trab2.api.java.Result.error;
 import static sd2223.trab2.api.java.Result.ok;
 import static sd2223.trab2.api.java.Result.ErrorCode.*;
+import static sd2223.trab2.clients.Clients.UsersClients;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import com.google.gson.reflect.TypeToken;
 import sd2223.trab2.api.Message;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.java.Result;
+import sd2223.trab2.servers.Domain;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusArgs;
 import sd2223.trab2.servers.mastodon.msgs.PostStatusResult;
 
@@ -47,9 +49,11 @@ public class MastodonFeeds implements Feeds {
 	private static final int HTTP_BAD_REQUEST = 400;
 
 	private static final int HTTP_FORBIDDEN = 403;
+
 	private static final int HTTP_NOT_FOUND = 404;
 
 	protected OAuth20Service service;
+
 	protected OAuth2AccessToken accessToken;
 
 	private static MastodonFeeds impl;
@@ -58,6 +62,7 @@ public class MastodonFeeds implements Feeds {
 		try {
 			service = new ServiceBuilder(clientKey).apiSecret(clientSecret).build(MastodonApi.instance());
 			accessToken = new OAuth2AccessToken(accessTokenStr);
+			verifyCredentials();
 		} catch (Exception x) {
 			x.printStackTrace();
 			System.exit(0);
@@ -78,6 +83,17 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<Long> postMessage(String user, String pwd, Message msg) {
 		try {
+			// Check if user or message is valid (if it is null or if domain does not match)
+			if (user == null || msg == null || !user.split("@")[1].equals(msg.getDomain())) {
+				return Result.error(Result.ErrorCode.BAD_REQUEST);
+			}
+			// Check if user exists and if password is correct
+			var res1 = UsersClients.get( Domain.get()).getUser(msg.getUser(), pwd);
+			if (!res1.isOK()) {
+				System.out.println("res1: " + res1.error());
+				return Result.error(res1.error());
+			}
+
 			final OAuthRequest request = new OAuthRequest(Verb.POST, getEndpoint(STATUSES_PATH));
 
 			JSON.toMap( new PostStatusArgs(msg.getText())).forEach( (k, v) -> {
@@ -88,8 +104,8 @@ public class MastodonFeeds implements Feeds {
 
 			Response response = service.execute(request);
 			if (response.getCode() == HTTP_OK) {
-				var res = JSON.decode(response.getBody(), PostStatusResult.class);
-				return ok(res.getId());
+				var res2 = JSON.decode(response.getBody(), PostStatusResult.class);
+				return ok(res2.getId());
 			}
 
 			return error(getErrorCode(response.getCode()));
@@ -104,6 +120,12 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<List<Message>> getMessages(String user, long time) {
 		try {
+			// Check if user exist
+			var res1 = UsersClients.get( Domain.get()).getUser(user.split("@")[0], null);
+			if (res1.error() == NOT_FOUND) {
+				return Result.error(NOT_FOUND);
+			}
+
 			final OAuthRequest request = new OAuthRequest(Verb.GET, getEndpoint(TIMELINES_PATH));
 
 			service.signRequest(accessToken, request);
@@ -111,10 +133,10 @@ public class MastodonFeeds implements Feeds {
 			Response response = service.execute(request);
 
 			if (response.getCode() == HTTP_OK) {
-				List<PostStatusResult> res = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
+				List<PostStatusResult> res2 = JSON.decode(response.getBody(), new TypeToken<List<PostStatusResult>>() {
 				});
 
-				return ok(res.stream()
+				return ok(res2.stream()
 						.filter(result -> result.getCreationTime() > time)
 						.map(PostStatusResult::toMessage)
 						.toList());
@@ -132,6 +154,13 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
 		try {
+
+			// Check if user exists and if password is correct
+			var res1 = UsersClients.get( Domain.get()).getUser(user.split("@")[0], pwd);
+			if (!res1.isOK()) {
+				return Result.error(res1.error());
+			}
+
 			var endpoint_url = getEndpoint(STATUSES_PATH) + "/" + mid;
 			final OAuthRequest request = new OAuthRequest(Verb.DELETE, endpoint_url);
 
@@ -155,6 +184,12 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<Message> getMessage(String user, long mid) {
 		try {
+			// Check if user exist
+			var res1 = UsersClients.get( Domain.get()).getUser(user.split("@")[0], null);
+			if (res1.error() == NOT_FOUND) {
+				return Result.error(NOT_FOUND);
+			}
+
 			var endpoint_url = getEndpoint(STATUSES_PATH) + "/" + mid;
 			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
 
@@ -178,9 +213,15 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<Void> subUser(String user, String userSub, String pwd) {
 		try {
+			// Check if user exists and if password is correct
+			var res1 = UsersClients.get( Domain.get()).getUser(user.split("@")[0], pwd);
+			if (!res1.isOK()) {
+				return Result.error(res1.error());
+			}
+
 			var res = getUserId(userSub);
 
-			if (!res.isOK()) {
+			if (!res.isOK()) {	// Check if user to sub exists
 				return error(res.error());
 			}
 
@@ -206,13 +247,17 @@ public class MastodonFeeds implements Feeds {
 	@Override
 	public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
 		try {
-			var res = getUserId(userSub);
-
-			if (!res.isOK()) {
-				return error(res.error());
+			// Check if user exists and if password is correct
+			var res1 = UsersClients.get( Domain.get()).getUser(user.split("@")[0], pwd);
+			if (!res1.isOK()) {
+				return Result.error(res1.error());
 			}
 
-			System.out.println("ID USER: " +res);
+			var res = getUserId(userSub);
+
+			if (!res.isOK()) {	// Check if user to sub exists
+				return error(res.error());
+			}
 
 			var endpoint_url = getEndpoint(ACCOUNT_UNFOLLOW_PATH, res.value());
 			final OAuthRequest request = new OAuthRequest(Verb.POST, endpoint_url);
@@ -263,6 +308,11 @@ public class MastodonFeeds implements Feeds {
 		return error(INTERNAL_ERROR);
 	}
 
+	@Override
+	public Result<Void> deleteUserFeed(String user) {
+		return error(NOT_IMPLEMENTED);
+	}
+
 	private Result<Long> getUserId(String userName) {
 		try {
 			var endpoint_url = getEndpoint(SEARCH_ACCOUNTS_PATH);
@@ -287,9 +337,25 @@ public class MastodonFeeds implements Feeds {
 		return error(INTERNAL_ERROR);
 	}
 
-	@Override
-	public Result<Void> deleteUserFeed(String user) {
-		return error(NOT_IMPLEMENTED);
+	private Result<Void> verifyCredentials() {
+		try {
+			var endpoint_url = getEndpoint(VERIFY_CREDENTIALS_PATH);
+			final OAuthRequest request = new OAuthRequest(Verb.GET, endpoint_url);
+
+			service.signRequest(accessToken, request);
+
+			Response response = service.execute(request);
+
+			if (response.getCode() == HTTP_OK) {
+				return ok();
+			}
+
+			return error(getErrorCode(response.getCode()));
+
+		} catch (Exception x) {
+			x.printStackTrace();
+		}
+		return error(INTERNAL_ERROR);
 	}
 
 	private Result.ErrorCode getErrorCode(int code) {
