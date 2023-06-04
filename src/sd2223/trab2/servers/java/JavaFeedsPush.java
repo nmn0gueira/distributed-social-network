@@ -79,7 +79,7 @@ public class JavaFeedsPush extends JavaFeedsCommon<FeedsPush> implements FeedsPu
 	
 	@Override
 	public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
-		
+		System.out.println("push_updateFollowers DEBUG CLASS: " + user + " " + follower + " " + following);
 		var preconditionsResult = preconditions.push_updateFollowers(user, follower, following);
 		if( ! preconditionsResult.isOK() )
 			return preconditionsResult;

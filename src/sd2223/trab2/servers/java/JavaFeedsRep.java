@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import sd2223.trab2.api.Message;
+import sd2223.trab2.api.PushMessage;
 import sd2223.trab2.api.java.Feeds;
+import sd2223.trab2.api.java.FeedsPush;
+import sd2223.trab2.api.java.FeedsPull;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.servers.Domain;
 import sd2223.trab2.servers.kafka.KafkaMessage;
@@ -13,11 +16,13 @@ import sd2223.trab2.servers.kafka.KafkaSubscriber;
 import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.JSON;
 
-public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements Feeds {
+import static sd2223.trab2.api.java.Result.ok;
+
+public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements FeedsPush, FeedsPull {
 
     private static final Logger Log = Logger.getLogger(JavaFeedsRep.class.getName());
 
-    private final T impl;
+    protected final T impl;
 
     private static final long REPLICA_ID = Domain.uuid();
 
@@ -69,7 +74,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
-                    var result = this.impl.subUser(user, userSub, pwd);
+                    var result = subUserRep(user, userSub, pwd);
                     System.out.println("Result DEBUG: " + result);
                     syncPoint.setResult(version, result);
                 }
@@ -77,7 +82,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
                     String user = (String) args.get(0);
                     String userSub = (String) args.get(1);
                     String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd));
+                    syncPoint.setResult(version, unsubscribeUserRep(user, userSub, pwd));
 
                 }
                 case DELETE_USER_FEED -> {
@@ -100,23 +105,6 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         }
         return res;
     }
-
-    private Result<Long> postMessageRep(String user, String pwd, Message msg, Long mid) {
-        var preconditionsResult = impl.preconditions.postMessage(user, pwd, msg);
-        if( ! preconditionsResult.isOK() )
-            return preconditionsResult;
-
-        msg.setId(mid);
-
-        JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
-        synchronized (ufi.user()) {
-            ufi.messages().add(mid);
-            impl.messages.putIfAbsent(mid, msg);
-        }
-        return Result.ok(mid);
-    }
-
-
 
     @Override
     public Result<Void> removeFromPersonalFeed(String user, long mid, String pwd) {
@@ -184,5 +172,47 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         KafkaMessage message = new KafkaMessage(REPLICA_ID, DELETE_USER_FEED, user);
         publisher.publish(TOPIC, JSON.encode(message));
         return res;
+    }
+
+    private Result<Long> postMessageRep(String user, String pwd, Message msg, Long mid) {
+        msg.setId(mid);
+
+        JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
+        synchronized (ufi.user()) {
+            ufi.messages().add(mid);
+            impl.messages.putIfAbsent(mid, msg);
+        }
+        return Result.ok(mid);
+    }
+
+    private Result<Void> subUserRep(String user, String userSub, String pwd) {
+        var ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
+        synchronized (ufi.user()) {
+            ufi.following().add(userSub);
+        }
+        return ok();
+    }
+
+    private Result<Void> unsubscribeUserRep(String user, String userSub, String pwd) {
+        JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new);
+        synchronized (ufi.user()) {
+            ufi.following().remove(userSub);
+        }
+        return ok();
+    }
+
+    @Override
+    public Result<Void> push_PushMessage(PushMessage msg) {
+        return ((FeedsPush) impl).push_PushMessage(msg);
+    }
+
+    @Override
+    public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
+        return ((FeedsPush) impl).push_updateFollowers(user, follower, following);
+    }
+
+    @Override
+    public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
+        return ((FeedsPull) impl).pull_getTimeFilteredPersonalFeed(user, time);
     }
 }

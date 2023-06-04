@@ -3,6 +3,7 @@ package sd2223.trab2.api.rest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import sd2223.trab2.api.Message;
+import sd2223.trab2.api.PushMessage;
 
 import java.util.List;
 
@@ -130,4 +131,18 @@ public interface FeedsServiceRep {
 	@DELETE
 	@Path("/personal/{" + USER + "}")
 	void deleteUserFeed(@HeaderParam(HEADER_VERSION) Long version, @PathParam(USER) String user);
+
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	void push_PushMessage(PushMessage msg);
+
+	@PUT
+	@Path("/followers/{" + USERSUB + "}/{" + USER + "}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	void push_updateFollowers(@PathParam(USERSUB) String user, @PathParam(USER) String follower, boolean following);
+
+	@GET
+	@Path("/personal/{" + USER + "}")
+	@Produces(MediaType.APPLICATION_JSON)
+	List<Message> pull_getTimeFilteredPersonalFeed(@PathParam(USER) String user, @QueryParam(TIME) long time);
 }
