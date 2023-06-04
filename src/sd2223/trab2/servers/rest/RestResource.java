@@ -9,11 +9,8 @@ import sd2223.trab2.api.java.Result.ErrorCode;
 import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.kafka.sync.SyncPoint;
 
-import java.util.logging.Logger;
 
 public class RestResource {
-
-	private static final Logger Log = Logger.getLogger(RestResource.class.getName());
 
 	/**
 	 * Given a Result<T>, either returns the value, or throws the JAX-WS Exception
@@ -29,7 +26,6 @@ public class RestResource {
 	}
 	@SuppressWarnings("unchecked")
 	protected <T> T fromJavaResult(Result<T> result, Long version) {
-		System.out.println("fromJavaResult: " + result + " version: " + version);
 		if (result.isOK()) {
 			var sync = SyncPoint.getInstance();
 			sync.setOffset(0);
@@ -47,31 +43,19 @@ public class RestResource {
 	}
 
 	/**
-	 * Translates a Result<T> to a HTTP Status code
+	 * Translates a Result<T> to an HTTP Status code
 	 */
 	private static Status statusCodeFrom(Result<?> result) {
-		switch (result.error()) {
-		case CONFLICT:
-			return Status.CONFLICT;
-		case NOT_FOUND:
-			return Status.NOT_FOUND;
-		case FORBIDDEN:
-			return Status.FORBIDDEN;
-		case TIMEOUT:
-		case BAD_REQUEST:
-			return Status.BAD_REQUEST;
-		case NOT_IMPLEMENTED:
-			return Status.NOT_IMPLEMENTED;
-		case INTERNAL_ERROR:
-			return Status.INTERNAL_SERVER_ERROR;
-		case REDIRECTED:
-			return result.errorValue() == null ? Status.NO_CONTENT : Status.OK;
-		case OK:
-			return result.value() == null ? Status.NO_CONTENT : Status.OK;
-			
-		default:
-			return Status.INTERNAL_SERVER_ERROR;
-		}
+		return switch (result.error()) {
+			case CONFLICT -> Status.CONFLICT;
+			case NOT_FOUND -> Status.NOT_FOUND;
+			case FORBIDDEN -> Status.FORBIDDEN;
+			case TIMEOUT, BAD_REQUEST -> Status.BAD_REQUEST;
+			case NOT_IMPLEMENTED -> Status.NOT_IMPLEMENTED;
+			case REDIRECTED -> result.errorValue() == null ? Status.NO_CONTENT : Status.OK;
+			case OK -> result.value() == null ? Status.NO_CONTENT : Status.OK;
+			default -> Status.INTERNAL_SERVER_ERROR;
+		};
 	}
 
 }

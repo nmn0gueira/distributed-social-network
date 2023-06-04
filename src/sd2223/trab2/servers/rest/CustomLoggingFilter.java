@@ -16,15 +16,14 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MediaType;
 
 public class CustomLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
-	private static Logger Log = Logger.getLogger(CustomLoggingFilter.class.getName());
+	private static final Logger Log = Logger.getLogger(CustomLoggingFilter.class.getName());
 
 	@Override
-	public void filter(ContainerRequestContext requestContext) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		sb.append(" - Path: ").append(requestContext.getUriInfo().getPath());
-		sb.append(" - Header: ").append(requestContext.getHeaders());
-		sb.append(" - Entity: ").append(getEntityBody(requestContext));
-		Log.info("HTTP REQUEST : " + sb.toString());
+	public void filter(ContainerRequestContext requestContext) {
+		String sb = " - Path: " + requestContext.getUriInfo().getPath() +
+				" - Header: " + requestContext.getHeaders() +
+				" - Entity: " + getEntityBody(requestContext);
+		Log.info("HTTP REQUEST : " + sb);
 	}
 
 	private String getEntityBody(ContainerRequestContext requestContext) {
@@ -37,7 +36,7 @@ public class CustomLoggingFilter implements ContainerRequestFilter, ContainerRes
 
 			byte[] requestEntity = out.toByteArray();
 			if (requestEntity.length == 0) {
-				b.append("").append("\n");
+				b.append("\n");
 			} else {
 				b.append(new String(requestEntity)).append("\n");
 			}
@@ -50,13 +49,10 @@ public class CustomLoggingFilter implements ContainerRequestFilter, ContainerRes
 	}
 
 	@Override
-	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-			throws IOException {
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("Header: ").append(responseContext.getHeaders());
-		sb.append(" - Entity (JSON): ").append( Entity.entity(responseContext.getEntity(), MediaType.APPLICATION_JSON).getEntity());
-		Log.info("HTTP RESPONSE : " + sb.toString());
+	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+		String sb = "Header: " + responseContext.getHeaders() +
+				" - Entity (JSON): " + Entity.entity(responseContext.getEntity(), MediaType.APPLICATION_JSON).getEntity();
+		Log.info("HTTP RESPONSE : " + sb);
 	}
 
 }

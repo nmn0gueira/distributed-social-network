@@ -1,35 +1,26 @@
 package sd2223.trab2.servers.rest;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import jakarta.inject.Singleton;
 import sd2223.trab2.api.Message;
-import sd2223.trab2.api.PushMessage;
 import sd2223.trab2.api.java.Feeds;
 import sd2223.trab2.api.java.FeedsPull;
-import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.rest.FeedsServiceRep;
 import sd2223.trab2.servers.java.JavaFeedsPull;
-import sd2223.trab2.servers.java.JavaFeedsPush;
 import sd2223.trab2.servers.java.JavaFeedsRep;
 import sd2223.trab2.servers.kafka.sync.SyncPoint;
-import utils.Args;
 
 @Singleton
 public class RestFeedsRepResource extends RestResource implements FeedsServiceRep {
 
     final protected Feeds impl;
 
-    private final static Logger Log = Logger.getLogger(RestFeedsRepResource.class.getName());
-
     public RestFeedsRepResource() {
-        this.impl = Args.valueOf("-push", true) ? new JavaFeedsRep<>(new JavaFeedsPush()) : new JavaFeedsRep<>(new JavaFeedsPull());
+        this.impl = new JavaFeedsRep<>(new JavaFeedsPull());
     }
 
     final private SyncPoint<?> syncPoint = SyncPoint.getInstance();
-
-
 
     @Override
     public long postMessage(Long version, String user, String pwd, Message msg) {
@@ -95,18 +86,8 @@ public class RestFeedsRepResource extends RestResource implements FeedsServiceRe
     }
 
     @Override
-    public void deleteUserFeed(Long version, String user) {
+    public void deleteUserFeed(String user) {
         fromJavaResult(impl.deleteUserFeed(user));
-    }
-
-    @Override
-    public void push_PushMessage(PushMessage msg) {
-        fromJavaResult(((FeedsPush) impl).push_PushMessage(msg));
-    }
-
-    @Override
-    public void push_updateFollowers(String user, String follower, boolean following) {
-        fromJavaResult(((FeedsPush) impl).push_updateFollowers(user, follower, following));
     }
 
     @Override

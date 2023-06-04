@@ -2,7 +2,6 @@ package sd2223.trab2.servers.soap;
 
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import jakarta.jws.WebService;
 import sd2223.trab2.api.User;
@@ -13,8 +12,6 @@ import sd2223.trab2.servers.java.JavaUsers;
 
 @WebService(serviceName=UsersService.NAME, targetNamespace=UsersService.NAMESPACE, endpointInterface=UsersService.INTERFACE)
 public class SoapUsersWebService extends SoapWebService<UsersException> implements UsersService {
-
-	static Logger Log = Logger.getLogger(SoapUsersWebService.class.getName());
 	
 	final Users impl;
 	public SoapUsersWebService() {

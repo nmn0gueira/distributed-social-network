@@ -5,7 +5,7 @@ import java.util.List;
 import sd2223.trab2.api.Message;
 
 public interface Feeds {
-	static String SERVICENAME = "feeds";
+	String SERVICENAME = "feeds";
 
 	Result<Long> postMessage(String user, String pwd, Message msg);
 

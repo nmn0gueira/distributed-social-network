@@ -7,7 +7,7 @@ import sd2223.trab2.api.soap.FeedsException;
 import sd2223.trab2.api.soap.push.FeedsService;
 import sd2223.trab2.servers.java.JavaFeedsPush;
 
-@WebService(serviceName=FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE, portName="caca")
+@WebService(serviceName=FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE)
 public class SoapFeedsPushWebService extends SoapFeedsWebService<FeedsPush> implements FeedsService {
 
 	public SoapFeedsPushWebService() {

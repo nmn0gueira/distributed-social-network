@@ -9,9 +9,9 @@ import sd2223.trab2.api.Message;
 @WebService(serviceName=FeedsService.NAME, targetNamespace=FeedsService.NAMESPACE, endpointInterface=FeedsService.INTERFACE)
 public interface FeedsService {
 
-	static final String NAME = "feeds";
-	static final String NAMESPACE = "http://sd2223";
-	static final String INTERFACE = "sd2223.trab2.api.soap.FeedsService";
+	String NAME = "feeds";
+	String NAMESPACE = "http://sd2223";
+	String INTERFACE = "sd2223.trab2.api.soap.FeedsService";
 	
 	/**
 	 * Posts a new message in the feed, associating it to the feed of the specific user.

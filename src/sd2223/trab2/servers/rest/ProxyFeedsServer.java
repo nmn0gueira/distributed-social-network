@@ -24,7 +24,7 @@ public class ProxyFeedsServer extends AbstractRestServer{
 
     public static void main(String[] args) throws Exception {
         Args.use( args);
-        Domain.set( args[0], Long.valueOf(args[1]));
+        Domain.set( args[0], Long.parseLong(args[1]));
         new ProxyFeedsServer().start();
     }
 }

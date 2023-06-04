@@ -130,16 +130,7 @@ public interface FeedsServiceRep {
 	
 	@DELETE
 	@Path("/personal/{" + USER + "}")
-	void deleteUserFeed(@HeaderParam(HEADER_VERSION) Long version, @PathParam(USER) String user);
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	void push_PushMessage(PushMessage msg);
-
-	@PUT
-	@Path("/followers/{" + USERSUB + "}/{" + USER + "}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	void push_updateFollowers(@PathParam(USERSUB) String user, @PathParam(USER) String follower, boolean following);
+	void deleteUserFeed(@PathParam(USER) String user);
 
 	@GET
 	@Path("/personal/{" + USER + "}")

@@ -1,12 +1,9 @@
 package sd2223.trab2.servers.java;
 
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import sd2223.trab2.api.Message;
-import sd2223.trab2.api.PushMessage;
-import sd2223.trab2.api.java.Feeds;
-import sd2223.trab2.api.java.FeedsPush;
 import sd2223.trab2.api.java.FeedsPull;
 import sd2223.trab2.api.java.Result;
 import sd2223.trab2.servers.Domain;
@@ -16,11 +13,7 @@ import sd2223.trab2.servers.kafka.KafkaSubscriber;
 import sd2223.trab2.servers.kafka.sync.SyncPoint;
 import utils.JSON;
 
-import static sd2223.trab2.api.java.Result.ok;
-
-public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements FeedsPush, FeedsPull {
-
-    private static final Logger Log = Logger.getLogger(JavaFeedsRep.class.getName());
+public class JavaFeedsRep<T extends JavaFeedsPull> implements FeedsPull {
 
     protected final T impl;
 
@@ -48,56 +41,12 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         this.impl = impl;
         publisher = KafkaPublisher.createPublisher(KAFKA_BROKERS);
         KafkaSubscriber subscriber = KafkaSubscriber.createSubscriber(KAFKA_BROKERS, List.of(TOPIC), FROM_BEGINNING);
-        subscriber.start(false, (r) -> {
-            System.out.printf("SeqN: %s %d %s\n", r.topic(), r.offset(), r.value());
-            var version = r.offset();
-            var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
-            long messageReplicaId = kafkaMsg.getReplicaId();
-            List<Object> args = kafkaMsg.getArguments();
-            switch (kafkaMsg.getOp()) {
-                case POST_MESSAGE -> {
-                    String user = (String) args.get(0);
-                    String pwd = (String) args.get(1);
-                    Message msg = JSON.decode(args.get(2).toString(), Message.class);
-                    Long mid = JSON.decode(args.get(3).toString(), Long.class);
-                    var result = messageReplicaId == REPLICA_ID ? this.impl.postMessage(user, pwd, msg) : postMessageRep(user, pwd, msg, mid);
-                    syncPoint.setResult(version, result);
-                }
-                case REMOVE_FROM_PERSONAL_FEED -> {
-                    String user = (String) args.get(0);
-                    Long mid = JSON.decode(args.get(1).toString(), Long.class);
-                    String pwd = (String) args.get(2);
-                    var result = this.impl.removeFromPersonalFeed(user, mid, pwd);
-                    syncPoint.setResult(version, result);
-                }
-                case SUB_USER -> {
-                    String user = (String) args.get(0);
-                    String userSub = (String) args.get(1);
-                    String pwd = (String) args.get(2);
-                    var result = subUserRep(user, userSub, pwd);
-                    System.out.println("Result DEBUG: " + result);
-                    syncPoint.setResult(version, result);
-                }
-                case UNSUBSCRIBE_USER -> {
-                    String user = (String) args.get(0);
-                    String userSub = (String) args.get(1);
-                    String pwd = (String) args.get(2);
-                    syncPoint.setResult(version, unsubscribeUserRep(user, userSub, pwd));
-
-                }
-                case DELETE_USER_FEED -> {
-                    String user = (String) args.get(0);
-                    var result = this.impl.deleteUserFeed(user);
-                    syncPoint.setResult(version, result);
-                    syncPoint.incOffset();
-                }
-            }
-        });
+        subscriber.start(false, this::processRecord);
     }
 
     @Override
     public Result<Long> postMessage(String user, String pwd, Message msg) {
-        var res = impl.preconditions.postMessage(user, pwd, msg); // Operation is executed locally
+        var res = impl.preconditions.postMessage(user, pwd, msg);
         if (res.isOK()) {
             // Serial number will be incremented by the publisher
             KafkaMessage message = new KafkaMessage(REPLICA_ID, POST_MESSAGE, user, pwd, msg, impl.serial.get() + 1L);
@@ -151,7 +100,7 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         var res = impl.preconditions.unsubscribeUser(user, userSub, pwd);
         if (res.isOK()) {
             JavaFeedsCommon.FeedInfo ufi = impl.feeds.get(user);
-            if (!ufi.following().contains(userSub))
+            if (!ufi.following().contains(userSub)) // Preconditions do not check for users that are not following userSub
                 return Result.error(Result.ErrorCode.NOT_FOUND);
             else {
                 KafkaMessage message = new KafkaMessage(REPLICA_ID, UNSUBSCRIBE_USER, user, userSub, pwd);
@@ -180,7 +129,16 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         return res;
     }
 
+    @Override
+    public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
+        return impl.pull_getTimeFilteredPersonalFeed(user, time);
+    }
+
     private Result<Long> postMessageRep(String user, String pwd, Message msg, Long mid) {
+        var res = impl.preconditions.postMessage(user, pwd, msg);
+        if( !res.isOK() )
+            return res;
+
         msg.setId(mid);
 
         JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
@@ -191,36 +149,44 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         return Result.ok(mid);
     }
 
-    private Result<Void> subUserRep(String user, String userSub, String pwd) {
-        var ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new );
-        synchronized (ufi.user()) {
-            ufi.following().add(userSub);
+    private void processRecord(ConsumerRecord<String, String> r) {
+        System.out.printf("Operation %d: %s %s\n", r.offset(), r.topic(), r.value());
+        var version = r.offset();
+        var kafkaMsg = JSON.decode(r.value(), KafkaMessage.class);
+        List<Object> args = kafkaMsg.getArguments();
+        switch (kafkaMsg.getOp()) {
+            case POST_MESSAGE -> {
+                String user = (String) args.get(0);
+                String pwd = (String) args.get(1);
+                Message msg = JSON.decode(args.get(2).toString(), Message.class);
+                Long mid = JSON.decode(args.get(3).toString(), Long.class);
+                var result = kafkaMsg.getReplicaId() == REPLICA_ID ? impl.postMessage(user, pwd, msg) : postMessageRep(user, pwd, msg, mid);
+                syncPoint.setResult(version, result);
+            }
+            case REMOVE_FROM_PERSONAL_FEED -> {
+                String user = (String) args.get(0);
+                Long mid = JSON.decode(args.get(1).toString(), Long.class);
+                String pwd = (String) args.get(2);
+                syncPoint.setResult(version, impl.removeFromPersonalFeed(user, mid, pwd));
+            }
+            case SUB_USER -> {
+                String user = (String) args.get(0);
+                String userSub = (String) args.get(1);
+                String pwd = (String) args.get(2);
+                syncPoint.setResult(version, impl.subUser(user, userSub, pwd));
+            }
+            case UNSUBSCRIBE_USER -> {
+                String user = (String) args.get(0);
+                String userSub = (String) args.get(1);
+                String pwd = (String) args.get(2);
+                syncPoint.setResult(version, impl.unsubscribeUser(user, userSub, pwd));
+
+            }
+            case DELETE_USER_FEED -> {  // Operation between servers, offset serves to know the next version to send to the client
+                String user = (String) args.get(0);
+                syncPoint.setResult(version, impl.deleteUserFeed(user));
+                syncPoint.incOffset();
+            }
         }
-        return ok();
-    }
-
-    private Result<Void> unsubscribeUserRep(String user, String userSub, String pwd) {
-        JavaFeedsCommon.FeedInfo ufi = impl.feeds.computeIfAbsent(user, JavaFeedsCommon.FeedInfo::new);
-        synchronized (ufi.user()) {
-            ufi.following().remove(userSub);
-        }
-
-
-        return ok();
-    }
-
-    @Override
-    public Result<Void> push_PushMessage(PushMessage msg) {
-        return ((FeedsPush) impl).push_PushMessage(msg);
-    }
-
-    @Override
-    public Result<Void> push_updateFollowers(String user, String follower, boolean following) {
-        return ((FeedsPush) impl).push_updateFollowers(user, follower, following);
-    }
-
-    @Override
-    public Result<List<Message>> pull_getTimeFilteredPersonalFeed(String user, long time) {
-        return ((FeedsPull) impl).pull_getTimeFilteredPersonalFeed(user, time);
     }
 }

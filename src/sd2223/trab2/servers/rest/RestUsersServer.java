@@ -11,7 +11,7 @@ import sd2223.trab2.servers.Domain;
 public class RestUsersServer extends AbstractRestServer {
 	public static final int PORT = 3456;
 	
-	private static Logger Log = Logger.getLogger(RestUsersServer.class.getName());
+	private static final Logger Log = Logger.getLogger(RestUsersServer.class.getName());
 
 	RestUsersServer() {
 		super( Log, Users.SERVICENAME, PORT);
@@ -20,9 +20,7 @@ public class RestUsersServer extends AbstractRestServer {
 	
 	@Override
 	void registerResources(ResourceConfig config) {
-		config.register( RestUsersResource.class ); 
-//		config.register(new GenericExceptionMapper());
-//		config.register(new CustomLoggingFilter());
+		config.register( RestUsersResource.class );
 	}
 	
 	

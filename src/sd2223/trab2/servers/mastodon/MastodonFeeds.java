@@ -90,7 +90,6 @@ public class MastodonFeeds implements Feeds {
 			// Check if user exists and if password is correct
 			var res1 = UsersClients.get( Domain.get()).getUser(msg.getUser(), pwd);
 			if (!res1.isOK()) {
-				System.out.println("res1: " + res1.error());
 				return Result.error(res1.error());
 			}
 

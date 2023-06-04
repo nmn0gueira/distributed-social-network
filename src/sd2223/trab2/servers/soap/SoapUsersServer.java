@@ -10,7 +10,7 @@ import sd2223.trab2.servers.Domain;
 public class SoapUsersServer extends AbstractSoapServer<SoapUsersWebService> {
 
 	public static final int PORT = 13456;
-	private static Logger Log = Logger.getLogger(SoapUsersServer.class.getName());
+	private static final Logger Log = Logger.getLogger(SoapUsersServer.class.getName());
 
 	protected SoapUsersServer() {
 		super(false, Log, Users.SERVICENAME, PORT,  new SoapUsersWebService() );

@@ -12,7 +12,7 @@ import utils.Args;
 public class RestFeedsServer extends AbstractRestServer {
 	public static final int PORT = 4567;
 	
-	private static Logger Log = Logger.getLogger(RestFeedsServer.class.getName());
+	private static final Logger Log = Logger.getLogger(RestFeedsServer.class.getName());
 
 	RestFeedsServer() {
 		super( Log, Feeds.SERVICENAME, PORT);
@@ -25,7 +25,7 @@ public class RestFeedsServer extends AbstractRestServer {
 	
 	public static void main(String[] args) throws Exception {
 		Args.use( args );
-		Domain.set( args[0], Long.valueOf(args[1]));
+		Domain.set( args[0], Long.parseLong(args[1]));
 		new RestFeedsServer().start();
 	}	
 }

@@ -16,7 +16,7 @@ public class SyncPoint<T> {
 	private long version = -1L;
 
 	private long offset = 0L;
-	private Map<Long, T> results;
+	private final Map<Long, T> results;
 
 	public SyncPoint() {
 		results = new HashMap<>();

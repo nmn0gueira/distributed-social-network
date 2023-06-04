@@ -52,7 +52,7 @@ public interface Discovery {
  */
 class DiscoveryImpl implements Discovery {
 	
-	private static Logger Log = Logger.getLogger(Discovery.class.getName());
+	private static final Logger Log = Logger.getLogger(Discovery.class.getName());
 
 	static final int DISCOVERY_RETRY_TIMEOUT = 5000;
 	static final int DISCOVERY_ANNOUNCE_PERIOD = 1000;
@@ -65,7 +65,7 @@ class DiscoveryImpl implements Discovery {
 
 	private static Discovery singleton;
 
-	private Map<String, Set<URI>> uris = new ConcurrentHashMap<>();
+	private final Map<String, Set<URI>> uris = new ConcurrentHashMap<>();
 	
 	synchronized static Discovery getInstance() {
 		if (singleton == null) {
