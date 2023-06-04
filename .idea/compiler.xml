@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="sd2223-trab2" options="" />
+      <module name="sd2223-trab2" options="--add-modules java.logging" />
     </option>
   </component>
 </project>

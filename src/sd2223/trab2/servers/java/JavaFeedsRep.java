@@ -150,9 +150,15 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
     public Result<Void> unsubscribeUser(String user, String userSub, String pwd) {
         var res = impl.preconditions.unsubscribeUser(user, userSub, pwd);
         if (res.isOK()) {
-            KafkaMessage message = new KafkaMessage(REPLICA_ID, UNSUBSCRIBE_USER, user, userSub, pwd);
-            publisher.publish(TOPIC, JSON.encode(message));
+            JavaFeedsCommon.FeedInfo ufi = impl.feeds.get(user);
+            if (!ufi.following().contains(userSub))
+                return Result.error(Result.ErrorCode.NOT_FOUND);
+            else {
+                KafkaMessage message = new KafkaMessage(REPLICA_ID, UNSUBSCRIBE_USER, user, userSub, pwd);
+                publisher.publish(TOPIC, JSON.encode(message));
+            }
         }
+
         return res;
     }
 
@@ -198,6 +204,8 @@ public class JavaFeedsRep<T extends JavaFeedsCommon<? extends Feeds>> implements
         synchronized (ufi.user()) {
             ufi.following().remove(userSub);
         }
+
+
         return ok();
     }
 
